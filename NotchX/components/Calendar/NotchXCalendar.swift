@@ -15,7 +15,6 @@ struct Config: Equatable {
     var steps: Int = 1  // Each step is one day
     var spacing: CGFloat = 0
     var showsText: Bool = true
-    var offset: Int = 2  // Number of dates to the left of the selected date
 }
 
 struct WheelPicker: View {
@@ -24,22 +23,18 @@ struct WheelPicker: View {
     @State private var scrollPosition: Int?
     @State private var haptics: Bool = false
     @State private var byClick: Bool = false
+    @State private var visibleWidth: CGFloat = 215  // safe default matching preview
+    private let itemWidth: CGFloat = 32
+    private var edgePadding: CGFloat { max(0, (visibleWidth / 2) - (itemWidth / 2)) }
+    private let centerOffset: CGFloat = 20  // positiv = nach rechts
     let config: Config
 
     var body: some View {
-        ScrollView(.horizontal, showsIndicators: false) {
-            HStack(spacing: config.spacing) {
-                let spacerNum = config.offset
-                let dateCount = totalDateItems()
-                let totalItems = dateCount + 2 * spacerNum
-                ForEach(0..<totalItems, id: \.self) { index in
-                    if index < spacerNum || index >= spacerNum + dateCount {
-                        // Leading/trailing spacers sized to match a date cell
-                        Spacer()
-                            .frame(width: 24, height: 24)
-                            .id(index)
-                    } else {
-                        let date = dateForItemIndex(index: index, spacerNum: spacerNum)
+        GeometryReader { geo in
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: config.spacing) {
+                    ForEach(0..<totalDateItems(), id: \.self) { index in
+                        let date = dateForItemIndex(index: index)
                         let isSelected = Calendar.current.isDate(date, inSameDayAs: selectedDate)
                         dateButton(date: date, isSelected: isSelected, id: index) {
                             selectedDate = date
@@ -53,35 +48,40 @@ struct WheelPicker: View {
                         }
                     }
                 }
+                .scrollTargetLayout()
             }
-            .frame(height: 50)
-            .scrollTargetLayout()
-        }
-        .scrollIndicators(.never)
-        .scrollPosition(id: $scrollPosition, anchor: .center)
-        .scrollTargetBehavior(.viewAligned)  // Ensures scroll view snaps the centered view
-        .safeAreaPadding(.horizontal)
-        .sensoryFeedback(.alignment, trigger: haptics)
-        .onChange(of: scrollPosition) { oldValue, newValue in
-            if !byClick {
-                handleScrollChange(newValue: newValue, config: config)
-            } else {
-                byClick = false
+            .scrollIndicators(.never)
+            .contentMargins(.leading,  edgePadding + centerOffset, for: .scrollContent)
+            .contentMargins(.trailing, edgePadding - centerOffset, for: .scrollContent)
+            .scrollPosition(id: $scrollPosition, anchor: .center)
+            .scrollTargetBehavior(.viewAligned)
+            .sensoryFeedback(.alignment, trigger: haptics)
+            .onChange(of: scrollPosition) { oldValue, newValue in
+                if !byClick {
+                    handleScrollChange(newValue: newValue, config: config)
+                } else {
+                    byClick = false
+                }
             }
-        }
-        .onAppear {
-            scrollToToday(config: config)
-        }
-        // When parent updates the bound selectedDate (e.g., view reopen), center the wheel on it
-        .onChange(of: selectedDate) { _, newValue in
-            let targetIndex = indexForDate(newValue)
-            if scrollPosition != targetIndex {
-                byClick = true
-                withAnimation {
-                    scrollPosition = targetIndex
+            .onAppear {
+                visibleWidth = geo.size.width
+                scrollToToday(config: config)
+            }
+            .onChange(of: geo.size.width) { _, new in visibleWidth = new }
+            // When parent updates the bound selectedDate (e.g., view reopen), center the wheel on it
+            .onChange(of: selectedDate) { _, newValue in
+                let targetIndex = indexForDate(newValue)
+                if scrollPosition != targetIndex {
+                    byClick = true
+                    DispatchQueue.main.async {
+                        withAnimation {
+                            scrollPosition = targetIndex
+                        }
+                    }
                 }
             }
         }
+        .frame(height: 50)
     }
 
     private func dateButton(
@@ -99,37 +99,35 @@ struct WheelPicker: View {
             .cornerRadius(8)
         }
         .buttonStyle(PlainButtonStyle())
+        .frame(width: 32)
         .id(id)
     }
 
     private func dayText(date: String, isToday: Bool, isSelected: Bool) -> some View {
         Text(date)
             .font(.caption)
-            .foregroundColor(isSelected ? .white : Color(white: 0.65))
+            .foregroundColor(
+                isToday ? Color.effectiveAccent :
+                isSelected ? .white : Color(white: 0.65)
+            )
     }
 
     private func dateCircle(date: Date, isToday: Bool, isSelected: Bool) -> some View {
-        ZStack {
-            Circle()
-                .fill(isToday ? Color.effectiveAccent : .clear)
-                .frame(width: 20, height: 20)
-                .overlay(
-                    Circle()
-                        .stroke(Color.gray.opacity(0.3), lineWidth: 0)
-                )
-            Text("\(date.date)")
-                .font(.body)
-                .fontWeight(.medium)
-                .foregroundColor(isSelected ? .white : Color(white: isToday ? 0.9 : 0.65))
-        }
+        Text("\(date.date)")
+            .font(isToday ? .callout : .body)
+            .fontWeight(isToday ? .bold : .medium)
+            .foregroundColor(
+                isToday ? Color.effectiveAccent :
+                isSelected ? .white : Color(white: 0.65)
+            )
+            .frame(width: 20, height: 20)
     }
 
     func handleScrollChange(newValue: Int?, config: Config) {
         guard let newIndex = newValue else { return }
-        let spacerNum = config.offset
         let dateCount = totalDateItems()
-        guard (spacerNum..<(spacerNum + dateCount)).contains(newIndex) else { return }
-        let date = dateForItemIndex(index: newIndex, spacerNum: spacerNum)
+        guard (0..<dateCount).contains(newIndex) else { return }
+        let date = dateForItemIndex(index: newIndex)
         if !Calendar.current.isDate(date, inSameDayAs: selectedDate) {
             selectedDate = date
             if Defaults[.enableHaptics] {
@@ -140,28 +138,29 @@ struct WheelPicker: View {
 
     private func scrollToToday(config: Config) {
         let today = Date()
-        byClick = true
-        scrollPosition = indexForDate(today)
         selectedDate = today
+        byClick = true
+        DispatchQueue.main.async {
+            scrollPosition = indexForDate(today)
+        }
     }
 
-    // MARK: - Index/Date mapping with steps and spacers
+    // MARK: - Index/Date mapping with steps
     private func indexForDate(_ date: Date) -> Int {
-        let spacerNum = config.offset
         let cal = Calendar.current
         let today = cal.startOfDay(for: Date())
         let startDate = cal.startOfDay(for: cal.date(byAdding: .day, value: -config.past, to: today) ?? today)
         let target = cal.startOfDay(for: date)
         let days = cal.dateComponents([.day], from: startDate, to: target).day ?? 0
         let stepIndex = max(0, min(days / max(config.steps, 1), totalDateItems() - 1))
-        return spacerNum + stepIndex
+        return stepIndex
     }
 
-    private func dateForItemIndex(index: Int, spacerNum: Int) -> Date {
+    private func dateForItemIndex(index: Int) -> Date {
         let cal = Calendar.current
         let today = cal.startOfDay(for: Date())
         let startDate = cal.date(byAdding: .day, value: -config.past, to: today) ?? today
-        let stepIndex = index - spacerNum
+        let stepIndex = index
         return cal.date(byAdding: .day, value: stepIndex * max(config.steps, 1), to: startDate) ?? today
     }
 
@@ -185,28 +184,50 @@ struct CalendarView: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            HStack(alignment: .top, spacing: 8) {
-                VStack(alignment: .leading) {
-                    Text(selectedDate.formatted(.dateTime.month(.abbreviated)))
-                        .font(.title3)
-                        .fontWeight(.semibold)
-                        .foregroundColor(.white)
-                }
-
+            ZStack(alignment: .topLeading) {
+                // WheelPicker fills full width
                 ZStack(alignment: .top) {
                     WheelPicker(selectedDate: $selectedDate, config: Config())
                     HStack(alignment: .top) {
                         LinearGradient(
-                            colors: [Color.black, .clear], startPoint: .leading, endPoint: .trailing
+                            colors: [Color.black, Color.black.opacity(0.6), .clear],
+                            startPoint: .leading, endPoint: .trailing
                         )
-                        .frame(width: 20)
+                        .frame(width: 40)
                         Spacer()
                         LinearGradient(
-                            colors: [.clear, Color.black], startPoint: .leading, endPoint: .trailing
+                            colors: [.clear, Color.black.opacity(0.6), Color.black],
+                            startPoint: .leading, endPoint: .trailing
                         )
-                        .frame(width: 20)
+                        .frame(width: 40)
                     }
                 }
+
+                // Month overlay with soft gradient background
+                HStack(spacing: 0) {
+                    Text(selectedDate.formatted(.dateTime.month(.abbreviated)))
+                        .font(.title)
+                        .fontWeight(.bold)
+                        .foregroundColor(.white)
+                    Spacer(minLength: 0)
+                }
+                .padding(.leading, 4)
+                .background(
+                    LinearGradient(
+                         stops: [                                                                                                          
+                            .init(color: Color.black, location: 0.0),                                                                     
+                            .init(color: Color.black.opacity(0.95), location: 0.2),
+                            .init(color: Color.black.opacity(0.75), location: 0.35),
+                            .init(color: Color.black.opacity(0.5), location: 0.5),
+                            .init(color: Color.black.opacity(0.25), location: 0.65),
+                            .init(color: Color.black.opacity(0.1), location: 0.8),
+                            .init(color: .clear, location: 1.0)], 
+                        startPoint: .leading, endPoint: .trailing
+                    )
+                    .frame(width: 120, height: 130)
+                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
+                )
+                .allowsHitTesting(false)
             }
             .padding(.top, 10)
 
