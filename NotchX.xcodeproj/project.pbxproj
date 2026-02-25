@@ -99,6 +99,7 @@
 		14D570C02C5EA5870011E668 /* AnimatedFace.swift in Sources */ = {isa = PBXBuildFile; fileRef = 14D570BF2C5EA5870011E668 /* AnimatedFace.swift */; };
 		14D570C22C5EAFBF0011E668 /* EmptyState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 14D570C12C5EAFBF0011E668 /* EmptyState.swift */; };
 		14D570C62C5F38210011E668 /* NotchXHeader.swift in Sources */ = {isa = PBXBuildFile; fileRef = 14D570C52C5F38210011E668 /* NotchXHeader.swift */; };
+		A1B2C3D4E5F60001AABB0001 /* NotchLockButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F60001AABB0002 /* NotchLockButton.swift */; };
 		14D570C92C5F38890011E668 /* NotchXViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 14D570C82C5F38890011E668 /* NotchXViewModel.swift */; };
 		14D570CB2C5F4B2C0011E668 /* BatteryStatusViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 14D570CA2C5F4B2C0011E668 /* BatteryStatusViewModel.swift */; };
 		14D570CD2C5F4BB70011E668 /* NotchXBattery.swift in Sources */ = {isa = PBXBuildFile; fileRef = 14D570CC2C5F4BB70011E668 /* NotchXBattery.swift */; };
@@ -269,6 +270,7 @@
 		14D570BF2C5EA5870011E668 /* AnimatedFace.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnimatedFace.swift; sourceTree = "<group>"; };
 		14D570C12C5EAFBF0011E668 /* EmptyState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EmptyState.swift; sourceTree = "<group>"; };
 		14D570C52C5F38210011E668 /* NotchXHeader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotchXHeader.swift; sourceTree = "<group>"; };
+		A1B2C3D4E5F60001AABB0002 /* NotchLockButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotchLockButton.swift; sourceTree = "<group>"; };
 		14D570C82C5F38890011E668 /* NotchXViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotchXViewModel.swift; sourceTree = "<group>"; };
 		14D570CA2C5F4B2C0011E668 /* BatteryStatusViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BatteryStatusViewModel.swift; sourceTree = "<group>"; };
 		14D570CC2C5F4BB70011E668 /* NotchXBattery.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotchXBattery.swift; sourceTree = "<group>"; };
@@ -708,6 +710,7 @@
 				1160F8D72DD98230006FBB94 /* NotchShape.swift */,
 				9AB0C6BB2C73C9CB00F7CD30 /* NotchHomeView.swift */,
 				14D570C52C5F38210011E668 /* NotchXHeader.swift */,
+				A1B2C3D4E5F60001AABB0002 /* NotchLockButton.swift */,
 				14D570D12C5F6C6A0011E668 /* NotchXExtrasMenu.swift */,
 				1471A8582C6281BD0058408D /* NotchXWindow.swift */,
 			);
@@ -973,6 +976,7 @@
 				118EBE272E92DE8400D54B5A /* NSMenu+AssociatedObject.swift in Sources */,
 				B1CE8CFE2C6F659400DD9871 /* KeyboardShortcutsHelper.swift in Sources */,
 				14D570C62C5F38210011E668 /* NotchXHeader.swift in Sources */,
+				A1B2C3D4E5F60001AABB0001 /* NotchLockButton.swift in Sources */,
 				B17266E32C65F7FB0031BA0D /* WhatsNewView.swift in Sources */,
 				14C08BB62C8DE42D000F8AA0 /* CalendarManager.swift in Sources */,
 				14D570CD2C5F4BB70011E668 /* NotchXBattery.swift in Sources */,

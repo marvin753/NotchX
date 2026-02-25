@@ -32,6 +32,7 @@ struct ContentView: View {
     @State private var notchTransitionTask: Task<Void, Never>?
     @State private var isNotchTransitioning: Bool = false
     @State private var anyDropDebounceTask: Task<Void, Never>?
+    @State private var isNotchLocked: Bool = false
 
     @State private var gestureProgress: CGFloat = .zero
 
@@ -146,6 +147,12 @@ struct ContentView: View {
                             .frame(height: 1)
                             .padding(.horizontal, topCornerRadius)
                     }
+                    .overlay(alignment: .bottomTrailing) {
+                        if vm.notchState == .open {
+                            NotchLockButton(isLocked: $isNotchLocked)
+                                .transition(.opacity)
+                        }
+                    }
                     .shadow(
                         color: ((vm.notchState == .open || isHovering) && Defaults[.enableShadow])
                             ? .black.opacity(0.7) : .clear, radius: Defaults[.cornerRadiusScaling] ? 6 : 4
@@ -157,6 +164,7 @@ struct ContentView: View {
                 
                 mainLayout
                     .frame(height: vm.notchState == .open ? vm.notchSize.height : nil)
+                    .padding(.horizontal, vm.notchState == .open ? shadowPadding / 2 : 0)
                     .frame(maxWidth: .infinity, alignment: .center)
                     .conditionalModifier(true) { view in
                         let openAnimation = Animation.spring(response: 0.42, dampingFraction: 0.8, blendDuration: 0)
@@ -183,13 +191,13 @@ struct ContentView: View {
                             }
                     }
                     .onReceive(NotificationCenter.default.publisher(for: .sharingDidFinish)) { _ in
-                        if vm.notchState == .open && !isHovering && !vm.isBatteryPopoverActive {
+                        if vm.notchState == .open && !isHovering && !vm.isBatteryPopoverActive && !isNotchLocked {
                             hoverTask?.cancel()
                             hoverTask = Task {
                                 try? await Task.sleep(for: .milliseconds(100))
                                 guard !Task.isCancelled else { return }
                                 await MainActor.run {
-                                    if self.vm.notchState == .open && !self.isHovering && !self.vm.isBatteryPopoverActive && !SharingStateManager.shared.preventNotchClose {
+                                    if self.vm.notchState == .open && !self.isHovering && !self.vm.isBatteryPopoverActive && !SharingStateManager.shared.preventNotchClose && !self.isNotchLocked {
                                         self.closeNotch()
                                     }
                                 }
@@ -200,6 +208,9 @@ struct ContentView: View {
                         scheduleNotchTransitionWindow(for: newState)
                         resetClosedHoverScaleImmediately()
 
+                        if newState == .closed {
+                            isNotchLocked = false
+                        }
                         if newState == .closed && isHovering {
                             withAnimation {
                                 isHovering = false
@@ -224,13 +235,13 @@ struct ContentView: View {
                         }
                     }
                     .onChange(of: vm.isBatteryPopoverActive) {
-                        if !vm.isBatteryPopoverActive && !isHovering && vm.notchState == .open && !SharingStateManager.shared.preventNotchClose {
+                        if !vm.isBatteryPopoverActive && !isHovering && vm.notchState == .open && !SharingStateManager.shared.preventNotchClose && !isNotchLocked {
                             hoverTask?.cancel()
                             hoverTask = Task {
                                 try? await Task.sleep(for: .milliseconds(100))
                                 guard !Task.isCancelled else { return }
                                 await MainActor.run {
-                                    if !self.vm.isBatteryPopoverActive && !self.isHovering && self.vm.notchState == .open && !SharingStateManager.shared.preventNotchClose {
+                                    if !self.vm.isBatteryPopoverActive && !self.isHovering && self.vm.notchState == .open && !SharingStateManager.shared.preventNotchClose && !self.isNotchLocked {
                                         self.closeNotch()
                                     }
                                 }
@@ -289,7 +300,7 @@ struct ContentView: View {
                 }
 
                 vm.dropEvent = false
-                if !SharingStateManager.shared.preventNotchClose {
+                if !SharingStateManager.shared.preventNotchClose && !isNotchLocked {
                     closeNotch()
                 }
             }
@@ -684,7 +695,7 @@ struct ContentView: View {
             
             if vm.notchState == .closed && !isNotchTransitioning {
                 withAnimation(closedHoverAnimation) {
-                    closedHoverScale = 1.05
+                    closedHoverScale = closedNotchHoverScaleFactor
                 }
                 if Defaults[.enableHaptics] {
                     haptics.toggle()
@@ -709,7 +720,7 @@ struct ContentView: View {
                         self.resetClosedHoverScaleImmediately()
                     }
 
-                    if self.vm.notchState == .open && !self.vm.isBatteryPopoverActive && !SharingStateManager.shared.preventNotchClose {
+                    if self.vm.notchState == .open && !self.vm.isBatteryPopoverActive && !SharingStateManager.shared.preventNotchClose && !self.isNotchLocked {
                         self.closeNotch()
                     }
                 }
@@ -759,7 +770,7 @@ struct ContentView: View {
             withAnimation(animationSpring) {
                 isHovering = false
             }
-            if !SharingStateManager.shared.preventNotchClose { 
+            if !SharingStateManager.shared.preventNotchClose && !isNotchLocked {
                 gestureProgress = .zero
                 closeNotch()
             }
