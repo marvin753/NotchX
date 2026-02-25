@@ -1,0 +1,633 @@
+name: "Deploy NotchX"
+on:
+  issue_comment:
+    types: [created]
+
+concurrency:
+  group: build-notchx-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  projname: NotchX
+  beta-channel-name: "beta"
+  EXPORT_METHOD: "development"
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  preparation:
+    name: Preparation job
+    if: ${{ github.event.issue.pull_request && contains(github.event.comment.body, '/release') }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+    outputs:
+      is_beta: ${{ steps.extract-version.outputs.is_beta }}
+      version: ${{ steps.extract-version.outputs.version }}
+      build_number: ${{ steps.extract-version.outputs.build_number }}
+      title: ${{ steps.generate-release-notes.outputs.title }}
+      release_notes: ${{ steps.generate-release-notes.outputs.release_notes }}
+      release_notes_github: ${{ steps.generate-release-notes.outputs.release_notes_github }}
+    steps:
+      - # TODO: pin to immutable SHA
+        uses: xt0rted/pull-request-comment-branch@v1
+        id: comment-branch
+
+      - name: Add reaction to comment
+        # TODO: pin to immutable SHA
+        uses: peter-evans/create-or-update-comment@v4
+        with:
+          comment-id: ${{ github.event.comment.id }}
+          reactions: eyes
+          
+      - # TODO: pin to immutable SHA
+        uses: actions/github-script@v6
+        with:
+          result-encoding: string
+          script: |
+            const commenter = context.payload.comment.user.login;
+            const owner = context.repo.owner;
+            const repo = context.repo.repo;
+
+            // Check the commenter's repository permission level (need write or admin)
+            try {
+              const perm = await github.rest.repos.getCollaboratorPermissionLevel({ owner, repo, username: commenter });
+              const level = perm.data.permission; // admin, write, read, none
+              if (level !== 'admin') {
+                core.setFailed("Commenter is not an admin on the repository");
+              }
+            } catch (err) {
+              core.setFailed("Failed to determine collaborator permission level: " + err.message);
+            }
+
+            // Check if the PR is ready to be merged
+              const pr = await github.rest.pulls.get({
+                owner: owner,
+                repo: repo,
+                pull_number: context.issue.number,
+              });
+              if (pr.data.draft || !pr.data.mergeable) {
+                core.setFailed("PR is not ready to be merged");
+              }
+      - # TODO: pin to immutable SHA
+        uses: actions/checkout@v3
+        if: success()
+        with:
+          ref: ${{ steps.comment-branch.outputs.head_ref }}
+          
+      - name: Ensure scripts directory exists
+        env:
+          BASE_REF: ${{ steps.comment-branch.outputs.base_ref }}
+        run: |
+          if [ ! -f ".github/scripts/extract_version.py" ]; then
+            echo "Script not found in PR branch, fetching from base branch"
+            git fetch origin "$BASE_REF"
+            git checkout "origin/$BASE_REF" -- .github/scripts/
+          fi
+          
+      - name: Extract version from comment or Xcode project
+        id: extract-version
+        shell: bash
+        env:
+          COMMENT: ${{ github.event.comment.body }}
+        run: |
+          set -euo pipefail
+
+          # Ensure semver is installed deterministically
+          python3 -m pip install --upgrade --no-cache-dir semver
+
+          export projname="${{ env.projname }}"
+
+          # Run script: if it exits non-zero, this step will fail and stop the job
+          OUTPUT=$(python3 .github/scripts/extract_version.py -c "$COMMENT")
+
+          # Parse outputs (script prints version=... and is_beta=...)
+          VERSION=$(echo "$OUTPUT" | grep -m1 '^version=' | sed 's/^version=//')
+          IS_BETA=$(echo "$OUTPUT" | grep -m1 '^is_beta=' | sed 's/^is_beta=//')
+
+          BUILD_NUMBER="${GITHUB_RUN_NUMBER}"
+
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "is_beta=$IS_BETA" >> $GITHUB_OUTPUT
+          echo "build_number=$BUILD_NUMBER" >> $GITHUB_OUTPUT
+          echo "Using Actions run number as build number: $BUILD_NUMBER for version: $VERSION"
+
+      - name: Generate release notes and title
+        id: generate-release-notes
+        # TODO: pin to immutable SHA
+        uses: actions/github-script@v6
+        with:
+          result-encoding: string
+          script: |
+            // Fetch the PR and use its title/body for release notes
+            const owner = context.repo.owner;
+            const repo = context.repo.repo;
+            const prNumber = context.issue.number;
+
+            const pr = await github.rest.pulls.get({ owner, repo, pull_number: prNumber });
+            const title = pr.data.title || ( (context.payload.comment && context.payload.comment.body && context.payload.comment.body.includes('beta')) ? 'Beta Release' : 'Release');
+            const body = pr.data.body || "- No release notes provided";
+
+            // Create a separate version for GitHub release notes (remove H1 tags and their content)
+            let bodyGithub = body;
+            bodyGithub = bodyGithub.replace(/^#\s+.*$/gm, '');
+            bodyGithub = bodyGithub.replace(/<h1[^>]*>[\s\S]*?<\/h1>/gi, '');
+            bodyGithub = bodyGithub.trim();
+
+            // Set step outputs for downstream jobs
+            core.setOutput('title', title);
+            core.setOutput('release_notes', body);
+            core.setOutput('release_notes_github', bodyGithub);
+
+            // Also write the release notes to a file for tools that expect a file
+            const fs = require('fs');
+            fs.writeFileSync('release_notes.md', body);
+
+      - name: Check if version already released
+        env:
+          VERSION: ${{ steps.extract-version.outputs.version }}
+        run: |
+          NEW_VERSION="v${VERSION}"
+          git fetch --tags
+
+          if git rev-parse "$NEW_VERSION" >/dev/null 2>&1; then
+            echo "Version $NEW_VERSION already exists as a tag" >> $GITHUB_STEP_SUMMARY
+            exit 1
+          else
+            echo "Version $NEW_VERSION not found in tags, continuing..."
+          fi
+
+      - name: Sync branch (for stable releases)
+        if: ${{ steps.extract-version.outputs.is_beta == 'false' }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.RELEASE_TOKEN }}
+          BASE_REF: ${{ steps.comment-branch.outputs.base_ref }}
+          HEAD_REF: ${{ steps.comment-branch.outputs.head_ref }}
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          # Use credential helper to avoid embedding the PAT in the remote URL.
+          git config --global credential.https://github.com.helper \
+            '!f() { echo "username=x-access-token"; printf "password=%s\n" "${GITHUB_TOKEN}"; }; f'
+          git fetch origin "$BASE_REF"
+          git checkout "$HEAD_REF"
+          git merge --no-ff "origin/$BASE_REF" -m "Sync branch before release"
+          git push origin "$HEAD_REF"
+
+  build:
+    name: Build and sign app
+    permissions:
+      contents: write
+    runs-on: macos-latest
+    needs: preparation
+    env:
+      DEVELOPMENT_TEAM: ${{ vars.DEVELOPMENT_TEAM_ID }}
+      CODE_SIGN_IDENTITY: "Apple Development"
+    steps:
+      - # TODO: pin to immutable SHA
+        uses: xt0rted/pull-request-comment-branch@v1
+        id: comment-branch
+      - # TODO: pin to immutable SHA
+        uses: actions/checkout@v3
+        if: success()
+        with:
+          ref: ${{ steps.comment-branch.outputs.head_ref }}
+          persist-credentials: true
+      - name: Resolve Swift packages
+        run: xcodebuild -resolvePackageDependencies -project ${{ env.projname }}.xcodeproj
+      - name: Install Apple certificate
+        env:
+          BUILD_CERTIFICATE_BASE64: ${{ secrets.BUILD_CERTIFICATE_BASE64 }}
+          P12_PASSWORD: ${{ secrets.P12_PASSWORD }}
+          KEYCHAIN_PASSWORD: ${{ secrets.KEYCHAIN_PASSWORD }}
+        run: |
+          CERT_PATH=$RUNNER_TEMP/build_certificate.p12
+          KC=$RUNNER_TEMP/app-signing.keychain-db
+          echo -n "$BUILD_CERTIFICATE_BASE64" | base64 --decode > "$CERT_PATH"
+          security create-keychain -p "$KEYCHAIN_PASSWORD" "$KC"
+          security set-keychain-settings -lut 21600 "$KC"
+          security unlock-keychain -p "$KEYCHAIN_PASSWORD" "$KC"
+          security import "$CERT_PATH" -P "$P12_PASSWORD" -A -t cert -f pkcs12 -k "$KC"
+          security list-keychain -d user -s "$KC"
+      - name: Switch Xcode version
+        run: |
+          sudo xcode-select -s "/Applications/Xcode_16.4.app"
+          /usr/bin/xcodebuild -version
+      - name: Set version and build number in project
+        env:
+          VERSION: ${{ needs.preparation.outputs.version }}
+          BUILD_NUMBER: ${{ needs.preparation.outputs.build_number }}
+        run: |
+          sed -i '' "s/MARKETING_VERSION = [^;]*/MARKETING_VERSION = ${VERSION}/g" ${{ env.projname }}.xcodeproj/project.pbxproj
+          sed -i '' "s/CURRENT_PROJECT_VERSION = [^;]*/CURRENT_PROJECT_VERSION = ${BUILD_NUMBER}/g" ${{ env.projname }}.xcodeproj/project.pbxproj
+
+      - name: Commit version changes
+        env:
+          VERSION: ${{ needs.preparation.outputs.version }}
+          BUILD_NUMBER: ${{ needs.preparation.outputs.build_number }}
+          HEAD_REF: ${{ steps.comment-branch.outputs.head_ref }}
+        run: |
+          git add ${{ env.projname }}.xcodeproj/project.pbxproj
+          git commit -m "Set version to v${VERSION} (build ${BUILD_NUMBER})" || echo "No changes to commit"
+          git push origin "HEAD:${HEAD_REF}" || true
+      - name: Build and archive
+        run: |
+          xcodebuild clean archive \
+            -project ${{ env.projname }}.xcodeproj \
+            -scheme ${{ env.projname }} \
+            -archivePath ${{ env.projname }} \
+            -destination "generic/platform=macOS" \
+            DEVELOPMENT_TEAM="$DEVELOPMENT_TEAM" \
+            CODE_SIGN_IDENTITY="$CODE_SIGN_IDENTITY" \
+            ONLY_ACTIVE_ARCH=NO \
+            -allowProvisioningUpdates
+      - name: Export app
+        env:
+          DEVELOPMENT_TEAM: ${{ vars.DEVELOPMENT_TEAM_ID }}
+        run: |
+          TEMP_PLIST="$RUNNER_TEMP/export_options.plist"
+          cat > "$TEMP_PLIST" <<EOF
+          <?xml version="1.0" encoding="UTF-8"?>
+          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+          <plist version="1.0">
+          <dict>
+            <key>method</key>
+            <string>${EXPORT_METHOD}</string>
+            <key>signingStyle</key>
+            <string>automatic</string>
+            <key>teamID</key>
+            <string>$DEVELOPMENT_TEAM</string>
+          </dict>
+          </plist>
+          EOF
+          xcodebuild -exportArchive -archivePath "${{ env.projname }}.xcarchive" -exportPath Release -exportOptionsPlist "$TEMP_PLIST"
+      - name: Check for generate_appcast in repository
+        run: |
+          TOOL_PATH="Configuration/sparkle/generate_appcast"
+          if [ ! -x "$TOOL_PATH" ]; then
+            echo "Configuration/sparkle/generate_appcast missing or not executable" >&2
+            exit 1
+          fi
+          echo "Found generate_appcast at $TOOL_PATH"
+      - name: Install dmgbuild (use virtualenv)
+        run: |
+          # Create an isolated venv
+          VENV_DIR="$RUNNER_TEMP/venv"
+          python3 -m venv "$VENV_DIR"
+          # Install into the venv
+          source "$VENV_DIR/bin/activate"
+          python -m pip install --upgrade pip setuptools wheel
+          python -m pip install "dmgbuild[badge_icons]"
+
+      - name: Create DMG
+        env:
+          VERSION: ${{ needs.preparation.outputs.version }}
+        run: |
+          # Ensure venv created in previous step is used (dmgbuild installed there)
+          VENV_DIR="$RUNNER_TEMP/venv"
+          if [ -d "$VENV_DIR" ]; then
+            export PATH="$VENV_DIR/bin:$PATH"
+          fi
+          chmod +x Configuration/dmg/create_dmg.sh
+          ./Configuration/dmg/create_dmg.sh "Release/${{ env.projname }}.app" "Release/${{ env.projname }}.dmg" "NotchX ${VERSION}"
+      - name: Upload DMG artifact
+        # TODO: pin to immutable SHA
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ env.projname }}.dmg
+          path: Release/${{ env.projname }}.dmg
+
+      - name: Upload .app artifact
+        # TODO: pin to immutable SHA
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ env.projname }}.app
+          path: Release/${{ env.projname }}.app
+
+  publish:
+    name: Publish Release
+    runs-on: macos-latest
+    needs: [preparation, build]
+    permissions:
+      contents: write
+    steps:
+      - # TODO: pin to immutable SHA
+        uses: xt0rted/pull-request-comment-branch@v1
+        id: comment-branch
+      - # TODO: pin to immutable SHA
+        uses: actions/checkout@v3
+        if: success()
+        with:
+          ref: ${{ steps.comment-branch.outputs.head_ref }}
+      - name: Download DMG artifact
+        # TODO: pin to immutable SHA
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ env.projname }}.dmg
+          path: Release
+      - name: Create embedded release notes fragment
+        env:
+          RELEASE_NOTES: ${{ needs.preparation.outputs.release_notes }}
+        run: |
+          mkdir -p Release
+          # Write release notes to file for Sparkle embedding
+          printf "%s" "$RELEASE_NOTES" > Release/NotchX.html
+      - name: Check for generate_appcast in repository
+        run: |
+          TOOL_PATH="Configuration/sparkle/generate_appcast"
+          if [ ! -x "$TOOL_PATH" ]; then
+            echo "Configuration/sparkle/generate_appcast missing or not executable" >&2
+            exit 1
+          fi
+          echo "Found generate_appcast at $TOOL_PATH"
+      - name: Generate signed appcast
+        env:
+          SPARKLE_PRIVATE_KEY: ${{ secrets.PRIVATE_SPARKLE_KEY }}
+          VERSION: ${{ needs.preparation.outputs.version }}
+          IS_BETA: ${{ needs.preparation.outputs.is_beta }}
+        run: |
+          set -euo pipefail
+          GITHUB_REPO="https://github.com/MarvinBarsal/NotchX/releases"
+          DOWNLOAD_PREFIX="https://github.com/MarvinBarsal/NotchX/releases/download/v${VERSION}/"
+
+          CHANNEL_ARG=""
+          if [[ "${IS_BETA}" == "true" ]]; then
+            CHANNEL_ARG="--channel ${{ env.beta-channel-name }}"
+          fi
+
+          printf '%s' "$SPARKLE_PRIVATE_KEY" | ./Configuration/sparkle/generate_appcast \
+            --ed-key-file - \
+            --link "$GITHUB_REPO" \
+            --download-url-prefix "$DOWNLOAD_PREFIX" \
+            --embed-release-notes \
+            $CHANNEL_ARG \
+            -o updater/appcast.xml \
+            Release/
+      - name: Commit appcast (and pbxproj for stable)
+        env:
+          IS_BETA: ${{ needs.preparation.outputs.is_beta }}
+          VERSION: ${{ needs.preparation.outputs.version }}
+          HEAD_REF: ${{ steps.comment-branch.outputs.head_ref }}
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git add updater/appcast.xml
+          if [[ "${IS_BETA}" == "false" ]]; then
+            git add ${{ env.projname }}.xcodeproj/project.pbxproj || true
+            git commit -m "Update version to v${VERSION} and appcast" || echo "No changes to commit"
+            git push origin "HEAD:${HEAD_REF}" || true
+          else
+            git checkout main
+            git add updater/appcast.xml
+            git commit -m "Update appcast with beta release for v${VERSION}" || echo "No changes to commit"
+            git push origin main
+          fi
+      - name: Create GitHub release
+        # TODO: pin to immutable SHA
+        uses: softprops/action-gh-release@v2
+        with:
+          name: v${{ needs.preparation.outputs.version }} - ${{ needs.preparation.outputs.title }}
+          tag_name: v${{ needs.preparation.outputs.version }}
+          fail_on_unmatched_files: true
+          body: ${{ needs.preparation.outputs.release_notes_github }}
+          files: Release/NotchX.dmg
+          prerelease: ${{ needs.preparation.outputs.is_beta }}
+          draft: false
+
+  upgrade-brew:
+    name: Upgrade Homebrew formula
+    runs-on: macos-latest
+    needs: [preparation, publish]
+    if: ${{ needs.preparation.outputs.is_beta == 'false' }}
+    permissions: {}
+    steps:
+      - name: Generate Homebrew stable cask
+        env:
+          VERSION: ${{ needs.preparation.outputs.version }}
+        run: |
+          DMG_URL="https://github.com/MarvinBarsal/NotchX/releases/download/v${VERSION}/NotchX.dmg"
+          NEW_SHA256=$(curl -sL "$DMG_URL" | shasum -a 256 | cut -d' ' -f1)
+          cat > notchx.rb <<EOF
+          cask "notchx" do
+            version "${VERSION}"
+            sha256 "$NEW_SHA256"
+
+            url "$DMG_URL"
+            name "NotchX"
+            desc "NotchX That Rocks 🎸🎶 "
+            homepage "https://github.com/MarvinBarsal/NotchX"
+
+            livecheck do
+              url :url
+              strategy :github_latest
+            end
+
+            auto_updates true
+            depends_on macos: ">= :sonoma"
+
+            app "NotchX.app"
+
+            zap trash: [
+              "~/Library/Application Scripts/marvinbarsal.notchx/",
+              "~/Library/Containers/marvinbarsal.notchx/",
+            ]
+          end
+          EOF
+
+      - name: Generate Homebrew RC cask (same as stable for stable releases)
+        env:
+          VERSION: ${{ needs.preparation.outputs.version }}
+        run: |
+          DMG_URL="https://github.com/MarvinBarsal/NotchX/releases/download/v${VERSION}/NotchX.dmg"
+          NEW_SHA256=$(curl -sL "$DMG_URL" | shasum -a 256 | cut -d' ' -f1)
+          cat > notchx@rc.rb <<EOF
+          cask "notchx@rc" do
+            version "${VERSION}"
+            sha256 "$NEW_SHA256"
+
+            url "$DMG_URL"
+            name "NotchX RC"
+            desc "NotchX That Rocks 🎸🎶 (Release Candidate)"
+            homepage "https://github.com/MarvinBarsal/NotchX"
+
+            livecheck do
+              url :url
+              strategy :github_latest
+            end
+
+            auto_updates true
+            depends_on macos: ">= :sonoma"
+
+            app "NotchX.app"
+
+            zap trash: [
+              "~/Library/Application Scripts/marvinbarsal.notchx/",
+              "~/Library/Containers/marvinbarsal.notchx/",
+            ]
+          end
+          EOF
+
+      - name: Upload Homebrew cask artifacts
+        # TODO: pin to immutable SHA
+        uses: actions/upload-artifact@v4
+        with:
+          name: homebrew-cask-${{ needs.preparation.outputs.version }}
+          path: |
+            notchx.rb
+            notchx@rc.rb
+
+      - name: Checkout Homebrew tap
+        # TODO: pin to immutable SHA
+        uses: actions/checkout@v3
+        with:
+          repository: MarvinBarsal/homebrew-notchx
+          token: ${{ secrets.HOMEBREW_TAP_TOKEN }}
+          path: homebrew-tap
+
+      - name: Update both casks in tap
+        env:
+          VERSION: ${{ needs.preparation.outputs.version }}
+        run: |
+          cp notchx.rb homebrew-tap/Casks/notchx.rb
+          cp notchx@rc.rb homebrew-tap/Casks/notchx@rc.rb
+          cd homebrew-tap
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add Casks/notchx.rb Casks/notchx@rc.rb
+          git commit -m "Update notchx and notchx@rc to v${VERSION}" || echo "No changes to commit"
+          git push
+
+  upgrade-brew-beta:
+    name: Upgrade Homebrew beta formula
+    runs-on: macos-latest
+    needs: [preparation, publish]
+    if: ${{ needs.preparation.outputs.is_beta == 'true' }}
+    permissions: {}
+    steps:
+      - name: Generate Homebrew beta cask
+        env:
+          VERSION: ${{ needs.preparation.outputs.version }}
+        run: |
+          DMG_URL="https://github.com/MarvinBarsal/NotchX/releases/download/v${VERSION}/NotchX.dmg"
+          NEW_SHA256=$(curl -sL "$DMG_URL" | shasum -a 256 | cut -d' ' -f1)
+          cat > notchx@rc.rb <<EOF
+          cask "notchx@rc" do
+            version "${VERSION}"
+            sha256 "$NEW_SHA256"
+
+            url "$DMG_URL"
+            name "NotchX RC"
+            desc "NotchX That Rocks 🎸🎶 (Release Candidate)"
+            homepage "https://github.com/MarvinBarsal/NotchX"
+
+            livecheck do
+              url :url
+              strategy :github_latest
+            end
+
+            auto_updates true
+            depends_on macos: ">= :sonoma"
+
+            app "NotchX.app"
+
+            zap trash: [
+              "~/Library/Application Scripts/marvinbarsal.notchx/",
+              "~/Library/Containers/marvinbarsal.notchx/",
+            ]
+          end
+          EOF
+      - name: Upload Homebrew beta cask artifact
+        # TODO: pin to immutable SHA
+        uses: actions/upload-artifact@v4
+        with:
+          name: homebrew-cask-${{ needs.preparation.outputs.version }}
+          path: notchx@rc.rb
+
+      - name: Checkout Homebrew tap
+        # TODO: pin to immutable SHA
+        uses: actions/checkout@v3
+        with:
+          repository: MarvinBarsal/homebrew-notchx
+          token: ${{ secrets.HOMEBREW_TAP_TOKEN }}
+          path: homebrew-tap
+
+      - name: Update beta cask in tap
+        env:
+          VERSION: ${{ needs.preparation.outputs.version }}
+        run: |
+          cp notchx@rc.rb homebrew-tap/Casks/notchx@rc.rb
+          cd homebrew-tap
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add Casks/notchx@rc.rb
+          git commit -m "Update notchx@rc to v${VERSION}" || echo "No changes to commit"
+          git push
+
+  ending:
+    name: Ending job
+    if: ${{ always() && github.event.issue.pull_request && (contains(github.event.comment.body, '/build') || contains(github.event.comment.body, '/release')) }}
+    runs-on: ubuntu-latest
+    needs: [preparation, build, publish, upgrade-brew]
+    steps:
+      - # TODO: pin to immutable SHA
+        uses: xt0rted/pull-request-comment-branch@v1
+        id: comment-branch
+      - # TODO: pin to immutable SHA
+        uses: actions/checkout@v3
+        if: ${{ contains(join(needs.*.result, ','), 'success') }}
+        with:
+          ref: ${{ steps.comment-branch.outputs.head_ref }}
+      - name: Merge PR (for stable releases)
+        if: ${{ needs.preparation.outputs.is_beta == 'false' && contains(join(needs.*.result, ','), 'success') }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.RELEASE_TOKEN }}
+          HEAD_REF: ${{ steps.comment-branch.outputs.head_ref }}
+          BASE_REF: ${{ steps.comment-branch.outputs.base_ref }}
+          VERSION: ${{ needs.preparation.outputs.version }}
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          # Use credential helper to avoid embedding the PAT in the remote URL.
+          git config --global credential.https://github.com.helper \
+            '!f() { echo "username=x-access-token"; printf "password=%s\n" "${GITHUB_TOKEN}"; }; f'
+          git fetch origin "$BASE_REF"
+          git checkout "$BASE_REF"
+          git merge --no-ff "origin/$HEAD_REF" -m "Release version v${VERSION}"
+          git push origin "$BASE_REF"
+      - name: Add success reactions
+        if: ${{ !contains(join(needs.*.result, ','), 'failure') }}
+        # TODO: pin to immutable SHA
+        uses: peter-evans/create-or-update-comment@v4
+        with:
+          comment-id: ${{ github.event.comment.id }}
+          reactions: rocket
+      - name: Add negative reaction
+        if: ${{ contains(join(needs.*.result, ','), 'failure') }}
+        # TODO: pin to immutable SHA
+        uses: peter-evans/create-or-update-comment@v4
+        with:
+          comment-id: ${{ github.event.comment.id }}
+          reactions: confused
+      - name: Create summary
+        env:
+          IS_BETA: ${{ needs.preparation.outputs.is_beta }}
+          VERSION: ${{ needs.preparation.outputs.version }}
+          BUILD_NUMBER: ${{ needs.preparation.outputs.build_number }}
+        run: |
+          BUILD_TYPE="stable"
+          if [[ "${IS_BETA}" == "true" ]]; then
+            BUILD_TYPE="beta"
+          fi
+          ALL_RESULTS="${{ join(needs.*.result, ',') }}"
+
+          if [[ "${ALL_RESULTS}" != *"failure"* ]]; then
+            echo "✅ Successfully released NotchX v${VERSION} ($BUILD_TYPE build ${BUILD_NUMBER})" >> $GITHUB_STEP_SUMMARY
+            echo "🍺 Homebrew cask updated" >> $GITHUB_STEP_SUMMARY
+            echo "📱 Sparkle appcast updated" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "❌ Release failed for NotchX v${VERSION}" >> $GITHUB_STEP_SUMMARY
+          fi

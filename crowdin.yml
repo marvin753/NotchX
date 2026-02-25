@@ -1,0 +1,4 @@
+files:
+  - source: /NotchX/Localizable.xcstrings
+    translation: /NotchX/Localizable.xcstrings
+    multilingual: 1
