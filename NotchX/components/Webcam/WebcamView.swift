@@ -29,7 +29,7 @@ struct CameraPreviewView: View {
 
                 if !webcamManager.isSessionRunning {
                     ZStack {
-                        RoundedRectangle(cornerRadius: Defaults[.mirrorShape] == .rectangle ? !Defaults[.cornerRadiusScaling] ? MusicPlayerImageSizes.cornerRadiusInset.closed : 12 : 100)
+                        RoundedRectangle(cornerRadius: Defaults[.mirrorShape] == .rectangle ? !Defaults[.cornerRadiusScaling] ? MusicPlayerImageSizes.cornerRadiusInset.closed : MusicPlayerImageSizes.cornerRadiusInset.opened : 100)
                             .fill(Color(red: 20/255, green: 20/255, blue: 20/255))
                             .strokeBorder(.white.opacity(0.04), lineWidth: 1)
                             .frame(width: geometry.size.width, height: geometry.size.width)

@@ -138,15 +138,12 @@ struct GeneralSettings: View {
     @Default(.mirrorShape) var mirrorShape
     @Default(.showEmojis) var showEmojis
     @Default(.gestureSensitivity) var gestureSensitivity
-    @Default(.minimumHoverDuration) var minimumHoverDuration
     @Default(.nonNotchHeight) var nonNotchHeight
     @Default(.nonNotchHeightMode) var nonNotchHeightMode
     @Default(.notchHeight) var notchHeight
     @Default(.notchHeightMode) var notchHeightMode
     @Default(.showOnAllDisplays) var showOnAllDisplays
     @Default(.automaticallySwitchDisplay) var automaticallySwitchDisplay
-    @Default(.enableGestures) var enableGestures
-    @Default(.openNotchOnHover) var openNotchOnHover
     
 
     var body: some View {
@@ -271,46 +268,34 @@ struct GeneralSettings: View {
         }
         .accentColor(.effectiveAccent)
         .navigationTitle("General")
-        .onChange(of: openNotchOnHover) {
-            if !openNotchOnHover {
-                enableGestures = true
-            }
-        }
     }
 
     @ViewBuilder
     func gestureControls() -> some View {
         Section {
-            Defaults.Toggle(key: .enableGestures) {
-                Text("Enable gestures")
+            Toggle("Change media with horizontal gestures", isOn: .constant(false))
+                .disabled(true)
+            Defaults.Toggle(key: .closeGestureEnabled) {
+                Text("Close gesture")
             }
-                .disabled(!openNotchOnHover)
-            if enableGestures {
-                Toggle("Change media with horizontal gestures", isOn: .constant(false))
-                    .disabled(true)
-                Defaults.Toggle(key: .closeGestureEnabled) {
-                    Text("Close gesture")
-                }
-                Slider(value: $gestureSensitivity, in: 100...300, step: 100) {
-                    HStack {
-                        Text("Gesture sensitivity")
-                        Spacer()
-                        Text(
-                            Defaults[.gestureSensitivity] == 100
-                                ? "High" : Defaults[.gestureSensitivity] == 200 ? "Medium" : "Low"
-                        )
-                        .foregroundStyle(.secondary)
-                    }
+            Slider(value: $gestureSensitivity, in: 100...300, step: 100) {
+                HStack {
+                    Text("Gesture sensitivity")
+                    Spacer()
+                    Text(
+                        Defaults[.gestureSensitivity] == 100
+                            ? "High" : Defaults[.gestureSensitivity] == 200 ? "Medium" : "Low"
+                    )
+                    .foregroundStyle(.secondary)
                 }
             }
         } header: {
             HStack {
                 Text("Gesture control")
-                customBadge(text: "Beta")
             }
         } footer: {
             Text(
-                "Two-finger swipe up on notch to close, two-finger swipe down on notch to open when **Open notch on hover** option is disabled"
+                "Two-finger swipe up on notch to close, two-finger swipe down on notch to open"
             )
             .multilineTextAlignment(.trailing)
             .foregroundStyle(.secondary)
@@ -321,27 +306,10 @@ struct GeneralSettings: View {
     @ViewBuilder
     func NotchBehaviour() -> some View {
         Section {
-            Defaults.Toggle(key: .openNotchOnHover) {
-                Text("Open notch on hover")
-            }
             Defaults.Toggle(key: .enableHaptics) {
                     Text("Enable haptic feedback")
             }
             Toggle("Remember last tab", isOn: $coordinator.openLastTabByDefault)
-            if openNotchOnHover {
-                Slider(value: $minimumHoverDuration, in: 0...1, step: 0.1) {
-                    HStack {
-                        Text("Hover delay")
-                        Spacer()
-                        Text("\(minimumHoverDuration, specifier: "%.1f")s")
-                            .foregroundStyle(.secondary)
-                    }
-                }
-                .onChange(of: minimumHoverDuration) {
-                    NotificationCenter.default.post(
-                        name: Notification.Name.notchHeightChanged, object: nil)
-                }
-            }
         } header: {
             Text("Notch behavior")
         }

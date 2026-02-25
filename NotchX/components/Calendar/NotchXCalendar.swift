@@ -191,10 +191,6 @@ struct CalendarView: View {
                         .font(.title3)
                         .fontWeight(.semibold)
                         .foregroundColor(.white)
-                    Text(selectedDate.formatted(.dateTime.year()))
-                        .font(.title3)
-                        .fontWeight(.light)
-                        .foregroundColor(Color(white: 0.65))
                 }
 
                 ZStack(alignment: .top) {
@@ -212,6 +208,7 @@ struct CalendarView: View {
                     }
                 }
             }
+            .padding(.top, 10)
 
             let filteredEvents = EventListView.filteredEvents(
                 events: calendarManager.events
@@ -224,7 +221,7 @@ struct CalendarView: View {
             }
         }
         .listRowBackground(Color.clear)
-        .frame(height: 120)
+        .frame(height: 130)
         .onChange(of: selectedDate) {
             Task {
                 await calendarManager.updateCurrentDate(selectedDate)
