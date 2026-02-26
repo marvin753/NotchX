@@ -28,40 +28,58 @@ struct SettingsView: View {
         NavigationSplitView {
             List(selection: $selectedTab) {
                 NavigationLink(value: "General") {
-                    Label("General", systemImage: "gear")
+                    SettingsSidebarLabel(title: "General", icon: "gear", color: .gray)
                 }
-                NavigationLink(value: "Appearance") {
-                    Label("Appearance", systemImage: "eye")
+
+                Section("Notifications") {
+                    NavigationLink(value: "Battery") {
+                        SettingsSidebarLabel(title: "Battery", icon: "bolt.fill", color: .orange)
+                    }
+                    NavigationLink(value: "Sound") {
+                        SettingsSidebarLabel(title: "Sound", icon: "speaker.wave.3", color: .blue)
+                    }
+                    NavigationLink(value: "Display") {
+                        SettingsSidebarLabel(title: "Display", icon: "sun.max.fill", color: .cyan)
+                    }
+                    NavigationLink(value: "Connectivity") {
+                        SettingsSidebarLabel(title: "Connectivity", icon: "wifi", color: .green, isComingSoon: true)
+                    }
+                    NavigationLink(value: "Focus") {
+                        SettingsSidebarLabel(title: "Focus", icon: "moon.fill", color: .indigo, isComingSoon: true)
+                    }
                 }
-                NavigationLink(value: "Media") {
-                    Label("Media", systemImage: "play.laptopcomputer")
+
+                Section("Live Activities") {
+                    NavigationLink(value: "NowPlaying") {
+                        SettingsSidebarLabel(title: "Now Playing", icon: "play.fill", color: .pink)
+                    }
+                    NavigationLink(value: "Calendar") {
+                        SettingsSidebarLabel(title: "Calendar", icon: "calendar", color: .red)
+                    }
                 }
-                NavigationLink(value: "Calendar") {
-                    Label("Calendar", systemImage: "calendar")
+
+                Section("Appearance") {
+                    NavigationLink(value: "Darstellung") {
+                        SettingsSidebarLabel(title: "Darstellung", icon: "eye.fill", color: .purple)
+                    }
+                    NavigationLink(value: "Shelf") {
+                        SettingsSidebarLabel(title: "Shelf", icon: "books.vertical", color: .teal)
+                    }
                 }
-                NavigationLink(value: "HUD") {
-                    Label("HUDs", systemImage: "dial.medium.fill")
-                }
-                NavigationLink(value: "Battery") {
-                    Label("Battery", systemImage: "battery.100.bolt")
-                }
-//                NavigationLink(value: "Downloads") {
-//                    Label("Downloads", systemImage: "square.and.arrow.down")
-//                }
-                NavigationLink(value: "Shelf") {
-                    Label("Shelf", systemImage: "books.vertical")
-                }
-                NavigationLink(value: "Shortcuts") {
-                    Label("Shortcuts", systemImage: "keyboard")
-                }
-                // NavigationLink(value: "Extensions") {
-                //     Label("Extensions", systemImage: "puzzlepiece.extension")
-                // }
-                NavigationLink(value: "Advanced") {
-                    Label("Advanced", systemImage: "gearshape.2")
-                }
-                NavigationLink(value: "About") {
-                    Label("About", systemImage: "info.circle")
+
+                Section("System") {
+                    NavigationLink(value: "Shortcuts") {
+                        SettingsSidebarLabel(title: "Shortcuts", icon: "keyboard", color: .gray)
+                    }
+                    NavigationLink(value: "Advanced") {
+                        SettingsSidebarLabel(title: "Advanced", icon: "gearshape.2.fill", color: .gray)
+                    }
+                    NavigationLink(value: "LockScreen") {
+                        SettingsSidebarLabel(title: "Lock Screen", icon: "lock.fill", color: Color(white: 0.35), isComingSoon: true)
+                    }
+                    NavigationLink(value: "About") {
+                        SettingsSidebarLabel(title: "About", icon: "info.circle.fill", color: .blue)
+                    }
                 }
             }
             .listStyle(SidebarListStyle())
@@ -73,29 +91,34 @@ struct SettingsView: View {
                 switch selectedTab {
                 case "General":
                     GeneralSettings()
-                case "Appearance":
-                    Appearance()
-                case "Media":
-                    Media()
-                case "Calendar":
-                    CalendarSettings()
-                case "HUD":
-                    HUD()
                 case "Battery":
                     Charge()
+                case "Sound":
+                    HUDSettingsPage(pageTitle: "Sound", pageDescription: "Configure how volume changes appear in the notch.")
+                case "Display":
+                    HUDSettingsPage(pageTitle: "Display", pageDescription: "Configure how brightness changes appear in the notch.")
+                case "Connectivity":
+                    ComingSoonPlaceholder(icon: "wifi", title: "Connectivity", description: "Wi-Fi and Bluetooth status notifications will appear here in a future update.")
+                case "Focus":
+                    ComingSoonPlaceholder(icon: "moon.fill", title: "Focus", description: "Focus mode integration and Do Not Disturb controls are coming soon.")
+                case "NowPlaying":
+                    NowPlayingSettings()
+                case "Calendar":
+                    CalendarSettings()
+                case "Darstellung":
+                    Darstellung()
                 case "Shelf":
                     Shelf()
                 case "Shortcuts":
                     Shortcuts()
-                case "Extensions":
-                    GeneralSettings()
                 case "Advanced":
                     Advanced()
+                case "LockScreen":
+                    ComingSoonPlaceholder(icon: "lock.fill", title: "Lock Screen", description: "Lock screen customization options are coming in a future release.")
                 case "About":
                     if let controller = updaterController {
                         About(updaterController: controller)
                     } else {
-                        // Fallback with a default controller
                         About(
                             updaterController: SPUStandardUpdaterController(
                                 startingUpdater: false, updaterDelegate: nil,
@@ -118,7 +141,7 @@ struct SettingsView: View {
         }
         .formStyle(.grouped)
         .frame(width: 700)
-        .background(Color(NSColor.windowBackgroundColor))
+        .background(.ultraThinMaterial)
         .tint(.effectiveAccent)
         .id(accentColorUpdateTrigger)
         .onReceive(NotificationCenter.default.publisher(for: NSNotification.Name("AccentColorChanged"))) { _ in
@@ -430,136 +453,7 @@ struct Charge: View {
 //    }
 //}
 
-struct HUD: View {
-    @EnvironmentObject var vm: NotchXViewModel
-    @Default(.inlineHUD) var inlineHUD
-    @Default(.enableGradient) var enableGradient
-    @Default(.optionKeyAction) var optionKeyAction
-    @Default(.hudReplacement) var hudReplacement
-    @ObservedObject var coordinator = NotchXViewCoordinator.shared
-    @State private var accessibilityAuthorized = false
-    
-    var body: some View {
-        Form {
-            Section {
-                HStack {
-                    VStack(alignment: .leading, spacing: 2) {
-                        Text("Replace system HUD")
-                            .font(.headline)
-                        Text("Replaces the standard macOS volume, display brightness, and keyboard brightness HUDs with a custom design.")
-                            .font(.subheadline)
-                            .foregroundStyle(.secondary)
-                            .fixedSize(horizontal: false, vertical: true)
-                    }
-                    Spacer(minLength: 40)
-                    Defaults.Toggle("", key: .hudReplacement)
-                    .labelsHidden()
-                    .toggleStyle(.switch)
-                    .controlSize(.large)
-                    .disabled(!accessibilityAuthorized)
-                }
-                
-                if !accessibilityAuthorized {
-                    VStack(alignment: .leading, spacing: 8) {
-                        Text("Accessibility access is required to replace the system HUD.")
-                            .font(.subheadline)
-                            .foregroundStyle(.secondary)
-
-                        HStack(spacing: 12) {
-                            Button("Request Accessibility") {
-                                XPCHelperClient.shared.requestAccessibilityAuthorization()
-                            }
-                            .buttonStyle(.borderedProminent)
-                        }
-                    }
-                    .padding(.top, 6)
-                }
-            }
-            
-            Section {
-                Picker("Option key behaviour", selection: $optionKeyAction) {
-                    ForEach(OptionKeyAction.allCases) { opt in
-                        Text(opt.rawValue).tag(opt)
-                    }
-                }
-                
-                Picker("Progress bar style", selection: $enableGradient) {
-                    Text("Hierarchical")
-                        .tag(false)
-                    Text("Gradient")
-                        .tag(true)
-                }
-                Defaults.Toggle(key: .systemEventIndicatorShadow) {
-                    Text("Enable glowing effect")
-                }
-                Defaults.Toggle(key: .systemEventIndicatorUseAccent) {
-                    Text("Tint progress bar with accent color")
-                }
-            } header: {
-                Text("General")
-            }
-            .disabled(!hudReplacement)
-            
-            Section {
-                Defaults.Toggle(key: .showOpenNotchHUD) {
-                    Text("Show HUD in open notch")
-                }
-                Defaults.Toggle(key: .showOpenNotchHUDPercentage) {
-                    Text("Show percentage")
-                }
-                .disabled(!Defaults[.showOpenNotchHUD])
-            } header: {
-                HStack {
-                    Text("Open Notch")
-                    customBadge(text: "Beta")
-                }
-            }
-            .disabled(!hudReplacement)
-            
-            Section {
-                Picker("HUD style", selection: $inlineHUD) {
-                    Text("Default")
-                        .tag(false)
-                    Text("Inline")
-                        .tag(true)
-                }
-                .onChange(of: Defaults[.inlineHUD]) {
-                    if Defaults[.inlineHUD] {
-                        withAnimation {
-                            Defaults[.systemEventIndicatorShadow] = false
-                            Defaults[.enableGradient] = false
-                        }
-                    }
-                }
-                
-                Defaults.Toggle(key: .showClosedNotchHUDPercentage) {
-                    Text("Show percentage")
-                }
-            } header: {
-                Text("Closed Notch")
-            }
-            .disabled(!Defaults[.hudReplacement])
-        }
-        .accentColor(.effectiveAccent)
-        .navigationTitle("HUDs")
-        .task {
-            accessibilityAuthorized = await XPCHelperClient.shared.isAccessibilityAuthorized()
-        }
-        .onAppear {
-            XPCHelperClient.shared.startMonitoringAccessibilityAuthorization()
-        }
-        .onDisappear {
-            XPCHelperClient.shared.stopMonitoringAccessibilityAuthorization()
-        }
-        .onReceive(NotificationCenter.default.publisher(for: .accessibilityAuthorizationChanged)) { notification in
-            if let granted = notification.userInfo?["granted"] as? Bool {
-                accessibilityAuthorized = granted
-            }
-        }
-    }
-}
-
-struct Media: View {
+struct NowPlayingSettings: View {
     @Default(.waitInterval) var waitInterval
     @Default(.mediaController) var mediaController
     @ObservedObject var coordinator = NotchXViewCoordinator.shared
@@ -568,6 +462,10 @@ struct Media: View {
     @Default(.sneakPeekStyles) var sneakPeekStyles
 
     @Default(.enableLyrics) var enableLyrics
+    @Default(.coloredSpectrogram) var coloredSpectrogram
+    @Default(.playerColorTinting) var playerColorTinting
+    @Default(.lightingEffect) var lightingEffect
+    @Default(.sliderColor) var sliderColor
 
     var body: some View {
         Form {
@@ -660,9 +558,26 @@ struct Media: View {
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }
+            Section {
+                Defaults.Toggle(key: .coloredSpectrogram) {
+                    Text("Colored spectrogram")
+                }
+                Defaults
+                    .Toggle("Player tinting", key: .playerColorTinting)
+                Defaults.Toggle(key: .lightingEffect) {
+                    Text("Enable blur effect behind album art")
+                }
+                Picker("Slider color", selection: $sliderColor) {
+                    ForEach(SliderColorEnum.allCases, id: \.self) { option in
+                        Text(option.rawValue)
+                    }
+                }
+            } header: {
+                Text("Now Playing Appearance")
+            }
         }
         .accentColor(.effectiveAccent)
-        .navigationTitle("Media")
+        .navigationTitle("Now Playing")
     }
 
     // Only show controller options that are available on this macOS version
@@ -1125,10 +1040,9 @@ struct Shelf: View {
 //    }
 //}
 
-struct Appearance: View {
+struct Darstellung: View {
     @ObservedObject var coordinator = NotchXViewCoordinator.shared
     @Default(.mirrorShape) var mirrorShape
-    @Default(.sliderColor) var sliderColor
     @Default(.useMusicVisualizer) var useMusicVisualizer
     @Default(.customVisualizers) var customVisualizers
     @Default(.selectedVisualizer) var selectedVisualizer
@@ -1150,24 +1064,6 @@ struct Appearance: View {
 
             } header: {
                 Text("General")
-            }
-
-            Section {
-                Defaults.Toggle(key: .coloredSpectrogram) {
-                    Text("Colored spectrogram")
-                }
-                Defaults
-                    .Toggle("Player tinting", key: .playerColorTinting)
-                Defaults.Toggle(key: .lightingEffect) {
-                    Text("Enable blur effect behind album art")
-                }
-                Picker("Slider color", selection: $sliderColor) {
-                    ForEach(SliderColorEnum.allCases, id: \.self) { option in
-                        Text(option.rawValue)
-                    }
-                }
-            } header: {
-                Text("Media")
             }
 
             Section {
@@ -1365,7 +1261,7 @@ struct Appearance: View {
             }
         }
         .accentColor(.effectiveAccent)
-        .navigationTitle("Appearance")
+        .navigationTitle("Darstellung")
     }
 
     func checkVideoInput() -> Bool {
@@ -1771,8 +1667,8 @@ func warningBadge(_ text: String, _ description: String) -> some View {
     .frame(width: 700, height: 600)
 }
 
-#Preview("HUD Settings") {
-    HUD()
+#Preview("Sound Settings") {
+    HUDSettingsPage(pageTitle: "Sound", pageDescription: "Configure how volume changes appear.")
         .frame(width: 700)
 }
 #Preview("General Settings") {
@@ -1780,8 +1676,8 @@ func warningBadge(_ text: String, _ description: String) -> some View {
         .frame(width: 700)
 }
 
-#Preview("Appearance Settings") {
-    Appearance()
+#Preview("Darstellung Settings") {
+    Darstellung()
         .frame(width: 700)
 }
 

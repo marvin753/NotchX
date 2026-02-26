@@ -144,6 +144,9 @@
 		B1F747F92EC7E94000F841DB /* LottieView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1F747F82EC7E94000F841DB /* LottieView.swift */; };
 		B1FEB4992C7686630066EBBC /* PanGesture.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1FEB4982C7686630066EBBC /* PanGesture.swift */; };
 		F38DE6482D8243E7008B5C6D /* BatteryActivityManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = F38DE6472D8243E2008B5C6D /* BatteryActivityManager.swift */; };
+		AA11BB222ECC001100AA0002 /* SettingsSidebarLabel.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA11BB222ECC001100AA0001 /* SettingsSidebarLabel.swift */; };
+		AA11BB222ECC001100AA0004 /* ComingSoonPlaceholder.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA11BB222ECC001100AA0003 /* ComingSoonPlaceholder.swift */; };
+		AA11BB222ECC001100AA0006 /* HUDSettingsPage.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA11BB222ECC001100AA0005 /* HUDSettingsPage.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -228,6 +231,9 @@
 		11A45C782E34E63100CEB175 /* MediaChecker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MediaChecker.swift; sourceTree = "<group>"; };
 		11C5E3112DFE85970065821E /* SettingsWindowController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsWindowController.swift; sourceTree = "<group>"; };
 		11C5E3152DFE88510065821E /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
+		AA11BB222ECC001100AA0001 /* SettingsSidebarLabel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsSidebarLabel.swift; sourceTree = "<group>"; };
+		AA11BB222ECC001100AA0003 /* ComingSoonPlaceholder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ComingSoonPlaceholder.swift; sourceTree = "<group>"; };
+		AA11BB222ECC001100AA0005 /* HUDSettingsPage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HUDSettingsPage.swift; sourceTree = "<group>"; };
 		11CC44A12CEE614100C7244B /* NotchXViewCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotchXViewCoordinator.swift; sourceTree = "<group>"; };
 		11CFC65A2E097E9D00748C80 /* WelcomeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WelcomeView.swift; sourceTree = "<group>"; };
 		11CFC65E2E097F2100748C80 /* OnboardingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingView.swift; sourceTree = "<group>"; };
@@ -726,6 +732,9 @@
 				B1D6FD422C6603730015F173 /* SoftwareUpdater.swift */,
 				B1B112902C6A572100093D8F /* EditPanelView.swift */,
 				B1C448972C972CC4001F0858 /* ListItemPopover.swift */,
+				AA11BB222ECC001100AA0001 /* SettingsSidebarLabel.swift */,
+				AA11BB222ECC001100AA0003 /* ComingSoonPlaceholder.swift */,
+				AA11BB222ECC001100AA0005 /* HUDSettingsPage.swift */,
 			);
 			path = Settings;
 			sourceTree = "<group>";
@@ -1008,6 +1017,9 @@
 				118EBE2D2E97165600D54B5A /* Bookmark.swift in Sources */,
 				B1FEB4992C7686630066EBBC /* PanGesture.swift in Sources */,
 				11F748842ECB27DC00F841DB /* MusicSlotConfigurationView.swift in Sources */,
+				AA11BB222ECC001100AA0002 /* SettingsSidebarLabel.swift in Sources */,
+				AA11BB222ECC001100AA0004 /* ComingSoonPlaceholder.swift in Sources */,
+				AA11BB222ECC001100AA0006 /* HUDSettingsPage.swift in Sources */,
 				9A0887352C7AFF8E00C160EA /* TabSelectionView.swift in Sources */,
 				112FB7352CCF16F70015238C /* NotchSpaceManager.swift in Sources */,
 				14FC6E502C7DED5600C7BEA5 /* DataTypes+Extensions.swift in Sources */,

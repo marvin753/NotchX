@@ -33,11 +33,17 @@ enum SettingsEnum {
     case general
     case about
     case charge
-    case download
-    case mediaPlayback
-    case hud
+    case sound
+    case display
+    case connectivity
+    case focus
+    case nowPlaying
+    case calendar
+    case darstellung
     case shelf
-    case extensions
+    case shortcuts
+    case advanced
+    case lockScreen
 }
 
 enum DownloadIndicatorStyle: String, Defaults.Serializable {
