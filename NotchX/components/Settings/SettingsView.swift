@@ -1762,6 +1762,26 @@ func warningBadge(_ text: String, _ description: String) -> some View {
     }
 }
 
-#Preview {
-    HUD()
+#Preview("Settings View") {
+    SettingsView(updaterController: SPUStandardUpdaterController(
+        startingUpdater: false, 
+        updaterDelegate: nil,
+        userDriverDelegate: nil
+    ))
+    .frame(width: 700, height: 600)
 }
+
+#Preview("HUD Settings") {
+    HUD()
+        .frame(width: 700)
+}
+#Preview("General Settings") {
+    GeneralSettings()
+        .frame(width: 700)
+}
+
+#Preview("Appearance Settings") {
+    Appearance()
+        .frame(width: 700)
+}
+
