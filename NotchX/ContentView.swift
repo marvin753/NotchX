@@ -443,15 +443,29 @@ struct ContentView: View {
                     switch coordinator.currentView {
                     case .home:
                         NotchHomeView(albumArtNamespace: albumArtNamespace)
+                            .transition(.asymmetric(
+                                insertion: .offset(y: -30)
+                                    .combined(with: .opacity)
+                                    .combined(with: .modifier(
+                                        active: BlurTransitionModifier(blurRadius: 20),
+                                        identity: BlurTransitionModifier(blurRadius: 0)
+                                    )),
+                                removal: .opacity
+                            ))
                     case .shelf:
                         ShelfView()
+                            .transition(.asymmetric(
+                                insertion: .offset(y: -30)
+                                    .combined(with: .opacity)
+                                    .combined(with: .modifier(
+                                        active: BlurTransitionModifier(blurRadius: 20),
+                                        identity: BlurTransitionModifier(blurRadius: 0)
+                                    )),
+                                removal: .opacity
+                            ))
                     }
                 }
-                .transition(
-                    .scale(scale: 0.8, anchor: .top)
-                    .combined(with: .opacity)
-                    .animation(.smooth(duration: 0.35))
-                )
+                .animation(.smooth(duration: 0.45), value: coordinator.currentView)
                 .zIndex(1)
                 .allowsHitTesting(vm.notchState == .open)
                 .opacity(gestureProgress != 0 ? 1.0 - min(abs(gestureProgress) * 0.1, 0.3) : 1.0)
@@ -824,6 +838,17 @@ struct GeneralDropTargetDelegate: DropDelegate {
 
     func performDrop(info: DropInfo) -> Bool {
         return false
+    }
+}
+
+// MARK: - Blur Transition Modifier
+
+struct BlurTransitionModifier: ViewModifier {
+    let blurRadius: CGFloat
+    
+    func body(content: Content) -> some View {
+        content
+            .blur(radius: blurRadius)
     }
 }
 
