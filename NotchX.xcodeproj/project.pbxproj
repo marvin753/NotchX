@@ -157,6 +157,23 @@
 		FF1A2B3C4D5E6F7A8B9C0D10 /* OpenDyslexic3-Regular.ttf in Resources */ = {isa = PBXBuildFile; fileRef = FF1A2B3C4D5E6F7A8B9C0D0F /* OpenDyslexic3-Regular.ttf */; };
 		FF1A2B3C4D5E6F7A8B9C0D16 /* TeleprompterEditorWindowController.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF1A2B3C4D5E6F7A8B9C0D15 /* TeleprompterEditorWindowController.swift */; };
 		FF1A2B3C4D5E6F7A8B9C0D18 /* TeleprompterEditorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF1A2B3C4D5E6F7A8B9C0D17 /* TeleprompterEditorView.swift */; };
+		DD00AABB2F000001CCDD0031 /* NXSegmentedControl.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD00AABB2F000001CCDD0011 /* NXSegmentedControl.swift */; };
+		DD00AABB2F000001CCDD0032 /* NXVisualPreviewPicker.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD00AABB2F000001CCDD0012 /* NXVisualPreviewPicker.swift */; };
+		DD00AABB2F000001CCDD0033 /* NXIconGridPicker.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD00AABB2F000001CCDD0013 /* NXIconGridPicker.swift */; };
+		DD00AABB2F000001CCDD0034 /* NXStyledToggle.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD00AABB2F000001CCDD0014 /* NXStyledToggle.swift */; };
+		DD00AABB2F000001CCDD0035 /* NXStyledSlider.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD00AABB2F000001CCDD0015 /* NXStyledSlider.swift */; };
+		DD00AABB2F000001CCDD0036 /* NXStepperField.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD00AABB2F000001CCDD0016 /* NXStepperField.swift */; };
+		DD00AABB2F000001CCDD0037 /* NXSectionHeader.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD00AABB2F000001CCDD0017 /* NXSectionHeader.swift */; };
+		DD00AABB2F000001CCDD0038 /* NXSettingsHelpers.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD00AABB2F000001CCDD0018 /* NXSettingsHelpers.swift */; };
+		DD00AABB2F000001CCDD0039 /* GeneralSettingsPage.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD00AABB2F000001CCDD0019 /* GeneralSettingsPage.swift */; };
+		DD00AABB2F000001CCDD003A /* BatterySettingsPage.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD00AABB2F000001CCDD001A /* BatterySettingsPage.swift */; };
+		DD00AABB2F000001CCDD003B /* NowPlayingSettingsPage.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD00AABB2F000001CCDD001B /* NowPlayingSettingsPage.swift */; };
+		DD00AABB2F000001CCDD003C /* CalendarSettingsPage.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD00AABB2F000001CCDD001C /* CalendarSettingsPage.swift */; };
+		DD00AABB2F000001CCDD003D /* DarstellungSettingsPage.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD00AABB2F000001CCDD001D /* DarstellungSettingsPage.swift */; };
+		DD00AABB2F000001CCDD003E /* ShelfSettingsPage.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD00AABB2F000001CCDD001E /* ShelfSettingsPage.swift */; };
+		DD00AABB2F000001CCDD003F /* ShortcutsSettingsPage.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD00AABB2F000001CCDD001F /* ShortcutsSettingsPage.swift */; };
+		DD00AABB2F000001CCDD0040 /* AdvancedSettingsPage.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD00AABB2F000001CCDD0020 /* AdvancedSettingsPage.swift */; };
+		DD00AABB2F000001CCDD0041 /* AboutSettingsPage.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD00AABB2F000001CCDD0021 /* AboutSettingsPage.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -337,6 +354,23 @@
 		FF1A2B3C4D5E6F7A8B9C0D0F /* OpenDyslexic3-Regular.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "OpenDyslexic3-Regular.ttf"; sourceTree = "<group>"; };
 		FF1A2B3C4D5E6F7A8B9C0D15 /* TeleprompterEditorWindowController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TeleprompterEditorWindowController.swift; sourceTree = "<group>"; };
 		FF1A2B3C4D5E6F7A8B9C0D17 /* TeleprompterEditorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TeleprompterEditorView.swift; sourceTree = "<group>"; };
+		DD00AABB2F000001CCDD0011 /* NXSegmentedControl.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NXSegmentedControl.swift; sourceTree = "<group>"; };
+		DD00AABB2F000001CCDD0012 /* NXVisualPreviewPicker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NXVisualPreviewPicker.swift; sourceTree = "<group>"; };
+		DD00AABB2F000001CCDD0013 /* NXIconGridPicker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NXIconGridPicker.swift; sourceTree = "<group>"; };
+		DD00AABB2F000001CCDD0014 /* NXStyledToggle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NXStyledToggle.swift; sourceTree = "<group>"; };
+		DD00AABB2F000001CCDD0015 /* NXStyledSlider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NXStyledSlider.swift; sourceTree = "<group>"; };
+		DD00AABB2F000001CCDD0016 /* NXStepperField.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NXStepperField.swift; sourceTree = "<group>"; };
+		DD00AABB2F000001CCDD0017 /* NXSectionHeader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NXSectionHeader.swift; sourceTree = "<group>"; };
+		DD00AABB2F000001CCDD0018 /* NXSettingsHelpers.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NXSettingsHelpers.swift; sourceTree = "<group>"; };
+		DD00AABB2F000001CCDD0019 /* GeneralSettingsPage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GeneralSettingsPage.swift; sourceTree = "<group>"; };
+		DD00AABB2F000001CCDD001A /* BatterySettingsPage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BatterySettingsPage.swift; sourceTree = "<group>"; };
+		DD00AABB2F000001CCDD001B /* NowPlayingSettingsPage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NowPlayingSettingsPage.swift; sourceTree = "<group>"; };
+		DD00AABB2F000001CCDD001C /* CalendarSettingsPage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CalendarSettingsPage.swift; sourceTree = "<group>"; };
+		DD00AABB2F000001CCDD001D /* DarstellungSettingsPage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DarstellungSettingsPage.swift; sourceTree = "<group>"; };
+		DD00AABB2F000001CCDD001E /* ShelfSettingsPage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShelfSettingsPage.swift; sourceTree = "<group>"; };
+		DD00AABB2F000001CCDD001F /* ShortcutsSettingsPage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShortcutsSettingsPage.swift; sourceTree = "<group>"; };
+		DD00AABB2F000001CCDD0020 /* AdvancedSettingsPage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AdvancedSettingsPage.swift; sourceTree = "<group>"; };
+		DD00AABB2F000001CCDD0021 /* AboutSettingsPage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AboutSettingsPage.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
@@ -744,9 +778,42 @@
 			path = Notch;
 			sourceTree = "<group>";
 		};
+		DD00AABB2F000001CCDD0001 /* DesignSystem */ = {
+			isa = PBXGroup;
+			children = (
+				DD00AABB2F000001CCDD0011 /* NXSegmentedControl.swift */,
+				DD00AABB2F000001CCDD0012 /* NXVisualPreviewPicker.swift */,
+				DD00AABB2F000001CCDD0013 /* NXIconGridPicker.swift */,
+				DD00AABB2F000001CCDD0014 /* NXStyledToggle.swift */,
+				DD00AABB2F000001CCDD0015 /* NXStyledSlider.swift */,
+				DD00AABB2F000001CCDD0016 /* NXStepperField.swift */,
+				DD00AABB2F000001CCDD0017 /* NXSectionHeader.swift */,
+				DD00AABB2F000001CCDD0018 /* NXSettingsHelpers.swift */,
+			);
+			path = DesignSystem;
+			sourceTree = "<group>";
+		};
+		DD00AABB2F000001CCDD0002 /* Pages */ = {
+			isa = PBXGroup;
+			children = (
+				DD00AABB2F000001CCDD0019 /* GeneralSettingsPage.swift */,
+				DD00AABB2F000001CCDD001A /* BatterySettingsPage.swift */,
+				DD00AABB2F000001CCDD001B /* NowPlayingSettingsPage.swift */,
+				DD00AABB2F000001CCDD001C /* CalendarSettingsPage.swift */,
+				DD00AABB2F000001CCDD001D /* DarstellungSettingsPage.swift */,
+				DD00AABB2F000001CCDD001E /* ShelfSettingsPage.swift */,
+				DD00AABB2F000001CCDD001F /* ShortcutsSettingsPage.swift */,
+				DD00AABB2F000001CCDD0020 /* AdvancedSettingsPage.swift */,
+				DD00AABB2F000001CCDD0021 /* AboutSettingsPage.swift */,
+			);
+			path = Pages;
+			sourceTree = "<group>";
+		};
 		B18654302C6F4590000B926A /* Settings */ = {
 			isa = PBXGroup;
 			children = (
+				DD00AABB2F000001CCDD0001 /* DesignSystem */,
+				DD00AABB2F000001CCDD0002 /* Pages */,
 				11F748832ECB27DC00F841DB /* MusicSlotConfigurationView.swift */,
 				11C5E3152DFE88510065821E /* SettingsView.swift */,
 				11C5E3112DFE85970065821E /* SettingsWindowController.swift */,
@@ -1100,6 +1167,23 @@
 				FF1A2B3C4D5E6F7A8B9C0D0E /* TeleprompterManager.swift in Sources */,
 				FF1A2B3C4D5E6F7A8B9C0D16 /* TeleprompterEditorWindowController.swift in Sources */,
 				FF1A2B3C4D5E6F7A8B9C0D18 /* TeleprompterEditorView.swift in Sources */,
+				DD00AABB2F000001CCDD0031 /* NXSegmentedControl.swift in Sources */,
+				DD00AABB2F000001CCDD0032 /* NXVisualPreviewPicker.swift in Sources */,
+				DD00AABB2F000001CCDD0033 /* NXIconGridPicker.swift in Sources */,
+				DD00AABB2F000001CCDD0034 /* NXStyledToggle.swift in Sources */,
+				DD00AABB2F000001CCDD0035 /* NXStyledSlider.swift in Sources */,
+				DD00AABB2F000001CCDD0036 /* NXStepperField.swift in Sources */,
+				DD00AABB2F000001CCDD0037 /* NXSectionHeader.swift in Sources */,
+				DD00AABB2F000001CCDD0038 /* NXSettingsHelpers.swift in Sources */,
+				DD00AABB2F000001CCDD0039 /* GeneralSettingsPage.swift in Sources */,
+				DD00AABB2F000001CCDD003A /* BatterySettingsPage.swift in Sources */,
+				DD00AABB2F000001CCDD003B /* NowPlayingSettingsPage.swift in Sources */,
+				DD00AABB2F000001CCDD003C /* CalendarSettingsPage.swift in Sources */,
+				DD00AABB2F000001CCDD003D /* DarstellungSettingsPage.swift in Sources */,
+				DD00AABB2F000001CCDD003E /* ShelfSettingsPage.swift in Sources */,
+				DD00AABB2F000001CCDD003F /* ShortcutsSettingsPage.swift in Sources */,
+				DD00AABB2F000001CCDD0040 /* AdvancedSettingsPage.swift in Sources */,
+				DD00AABB2F000001CCDD0041 /* AboutSettingsPage.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

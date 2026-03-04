@@ -186,7 +186,7 @@ Image(systemName: "house.fill")          // Home tab
 Image(systemName: "tray.fill")           // Shelf tab
 Image(systemName: "text.word.spacing")   // Teleprompter tab
 Image(systemName: "gear")                // Settings
-Image(systemName: "web.camera")          // Webcam
+Image(systemName: "web.camera.fill")          // Webcam
 
 // Music controls
 "play.fill" / "pause.fill"

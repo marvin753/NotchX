@@ -23,45 +23,47 @@ struct TeleprompterSettingsView: View {
 
     var body: some View {
         Form {
-            Defaults.Toggle(key: .teleprompterEnabled) {
-                Text("Enable Teleprompter")
-            }
+            NXStyledToggle(title: "Enable Teleprompter", key: .teleprompterEnabled)
 
             if enabled {
                 Button("Open Teleprompter Editor") {
                     TeleprompterEditorWindowController.shared.showWindow()
                 }
 
-                Section("Guidance Mode") {
-                    Picker("Mode", selection: $listeningMode) {
-                        ForEach(TeleprompterListeningMode.allCases, id: \.self) { mode in
-                            Text(mode.rawValue).tag(mode)
-                        }
-                    }
+                Section {
+                    NXSegmentedControl(
+                        items: [
+                            NXSegmentItem(label: "Word Tracking", value: TeleprompterListeningMode.wordTracking, content: .animatedIcon("text.magnifyingglass", .pulse)),
+                            NXSegmentItem(label: "Classic", value: TeleprompterListeningMode.classic, content: .icon("arrow.down")),
+                            NXSegmentItem(label: "Voice-Activated", value: TeleprompterListeningMode.silencePaused, content: .animatedIcon("mic", .pulse)),
+                        ],
+                        selection: $listeningMode
+                    )
 
                     Text(listeningMode.description)
                         .font(.caption)
                         .foregroundStyle(.secondary)
+                } header: {
+                    NXSectionHeader(title: "Guidance Mode")
                 }
 
                 if listeningMode != .wordTracking {
-                    Section("Scroll Speed") {
-                        HStack {
-                            Text("Slow")
-                                .font(.caption)
-                                .foregroundStyle(.secondary)
-                            Slider(value: $scrollSpeed, in: 0.5...10.0, step: 0.5)
-                            Text("Fast")
-                                .font(.caption)
-                                .foregroundStyle(.secondary)
-                        }
-                        Text("\(scrollSpeed, specifier: "%.1f") words/sec")
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
+                    Section {
+                        NXStyledSlider(
+                            value: $scrollSpeed,
+                            title: "Scroll Speed",
+                            range: 0.5...10.0,
+                            step: 0.5,
+                            unit: " w/s",
+                            minLabel: "Slow",
+                            maxLabel: "Fast"
+                        )
+                    } header: {
+                        NXSectionHeader(title: "Scroll Speed")
                     }
                 }
 
-                Section("Speech Recognition") {
+                Section {
                     Picker("Language", selection: $speechLocale) {
                         ForEach(availableLocales, id: \.identifier) { locale in
                             Text(
@@ -78,36 +80,45 @@ struct TeleprompterSettingsView: View {
                             Text(mic.name).tag(mic.uid)
                         }
                     }
+                } header: {
+                    NXSectionHeader(title: "Speech Recognition")
                 }
 
-                Section("Font") {
-                    Picker("Family", selection: $fontFamily) {
-                        ForEach(TeleprompterFontFamily.allCases, id: \.self) { family in
-                            Text(family.rawValue).tag(family)
-                        }
-                    }
+                Section {
+                    NXSegmentedControl(
+                        items: [
+                            (label: "Sans", value: TeleprompterFontFamily.sans, icon: "textformat"),
+                            (label: "Serif", value: TeleprompterFontFamily.serif, icon: "textformat.alt"),
+                            (label: "Mono", value: TeleprompterFontFamily.mono, icon: "chevron.left.forwardslash.chevron.right"),
+                            (label: "Dyslexia", value: TeleprompterFontFamily.dyslexia, icon: "accessibility"),
+                        ],
+                        selection: $fontFamily
+                    )
 
-                    Picker("Size", selection: $fontSize) {
-                        ForEach(TeleprompterFontSize.allCases, id: \.self) { size in
-                            Text(size.rawValue).tag(size)
-                        }
-                    }
+                    NXSegmentedControl(
+                        items: [
+                            (label: "XS", value: TeleprompterFontSize.xs, icon: "textformat.size.smaller"),
+                            (label: "S", value: TeleprompterFontSize.sm, icon: "textformat.size"),
+                            (label: "L", value: TeleprompterFontSize.lg, icon: "textformat.size.larger"),
+                            (label: "XL", value: TeleprompterFontSize.xl, icon: "textformat.size.larger"),
+                        ],
+                        selection: $fontSize
+                    )
 
-                    Picker("Highlight Color", selection: $fontColor) {
-                        ForEach(TeleprompterFontColor.allCases, id: \.self) { color in
-                            HStack {
-                                Circle()
-                                    .fill(color.color)
-                                    .frame(width: 12, height: 12)
-                                Text(color.label)
-                            }
-                            .tag(color)
-                        }
-                    }
+                    NXIconGridPicker(
+                        items: TeleprompterFontColor.allCases.map {
+                            NXIconGridItem(label: $0.label, value: $0, color: $0.color)
+                        },
+                        selection: $fontColor
+                    )
+                } header: {
+                    NXSectionHeader(title: "Font")
                 }
             }
         }
         .formStyle(.grouped)
+        .accentColor(Color.effectiveAccent)
+        .navigationTitle("Teleprompter")
         .onAppear {
             availableMics = AudioInputDevice.allInputDevices()
             availableLocales = SpeechLocaleProvider.supportedLocales()

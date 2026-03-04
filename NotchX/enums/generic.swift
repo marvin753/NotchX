@@ -36,7 +36,6 @@ enum SettingsEnum {
     case charge
     case sound
     case display
-    case connectivity
     case focus
     case nowPlaying
     case calendar

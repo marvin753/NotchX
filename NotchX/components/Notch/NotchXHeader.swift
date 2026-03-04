@@ -50,7 +50,7 @@ struct NotchXHeader: View {
                                     .fill(.black)
                                     .frame(width: 30, height: 30)
                                     .overlay {
-                                        Image(systemName: "web.camera")
+                                        Image(systemName: "web.camera.fill")
                                             .foregroundColor(.white)
                                             .padding()
                                             .imageScale(.medium)
