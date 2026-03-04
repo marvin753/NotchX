@@ -17,20 +17,19 @@ struct TeleprompterEditorView: View {
             TextEditor(text: $manager.scriptText)
                 .font(.system(size: 14, design: .monospaced))
                 .scrollContentBackground(.hidden)
-                .padding(12)
-                .background(Color(nsColor: .textBackgroundColor).opacity(0.5))
-                .clipShape(RoundedRectangle(cornerRadius: 8))
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
                 .overlay(alignment: .topLeading) {
                     if manager.scriptText.isEmpty {
                         Text("Paste or type your script here...")
                             .foregroundStyle(.secondary)
-                            .font(.system(size: 14))
-                            .padding(.horizontal, 17)
-                            .padding(.vertical, 20)
+                            .font(.system(size: 14, design: .monospaced))
+                            .padding(.horizontal, 5)
                             .allowsHitTesting(false)
                     }
                 }
+                .padding(12)
+                .background(Color(nsColor: .textBackgroundColor).opacity(0.5))
+                .clipShape(RoundedRectangle(cornerRadius: 8))
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
                 .padding(.horizontal, 16)
                 .padding(.top, 12)
 
@@ -95,3 +94,10 @@ struct TeleprompterEditorView: View {
         }
     }
 }
+
+#Preview("Teleprompter Editor") {
+    TeleprompterEditorView()
+        .frame(width: 600, height: 400)
+        .padding()
+}
+

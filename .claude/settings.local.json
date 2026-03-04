@@ -2,7 +2,8 @@
   "permissions": {
     "allow": [
       "WebSearch",
-      "Bash(xargs cat:*)"
+      "Bash(xargs cat:*)",
+      "mcp__figma__create_design_system_rules"
     ]
   }
 }
