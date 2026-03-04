@@ -81,6 +81,7 @@ class NotchXViewCoordinator: ObservableObject {
     }
     
     @Default(.hudReplacement) var hudReplacement: Bool
+    @Default(.teleprompterEnabled) var teleprompterEnabled: Bool
     
     // Legacy storage for migration
     @AppStorage("preferred_screen_name") private var legacyPreferredScreenName: String?
@@ -100,6 +101,7 @@ class NotchXViewCoordinator: ObservableObject {
     @Published var optionKeyPressed: Bool = true
     private var accessibilityObserver: Any?
     private var hudReplacementCancellable: AnyCancellable?
+    private var teleprompterEnabledCancellable: AnyCancellable?
 
     private init() {
         // Perform migration from name-based to UUID-based storage
@@ -160,6 +162,18 @@ class NotchXViewCoordinator: ObservableObject {
                     }
                 }
             }
+
+        // Observe teleprompter enabled: switch away if disabled while on teleprompter tab
+        teleprompterEnabledCancellable = Defaults.publisher(.teleprompterEnabled)
+            .sink { [weak self] change in
+                Task { @MainActor in
+                    guard let self else { return }
+                    if !change.newValue && self.currentView == .teleprompter {
+                        self.currentView = .home
+                    }
+                }
+            }
+
 
         Task { @MainActor in
             helloAnimationRunning = firstLaunch

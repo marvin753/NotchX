@@ -147,6 +147,16 @@
 		AA11BB222ECC001100AA0002 /* SettingsSidebarLabel.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA11BB222ECC001100AA0001 /* SettingsSidebarLabel.swift */; };
 		AA11BB222ECC001100AA0004 /* ComingSoonPlaceholder.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA11BB222ECC001100AA0003 /* ComingSoonPlaceholder.swift */; };
 		AA11BB222ECC001100AA0006 /* HUDSettingsPage.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA11BB222ECC001100AA0005 /* HUDSettingsPage.swift */; };
+		FF1A2B3C4D5E6F7A8B9C0D02 /* TeleprompterEnums.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF1A2B3C4D5E6F7A8B9C0D01 /* TeleprompterEnums.swift */; };
+		FF1A2B3C4D5E6F7A8B9C0D04 /* TeleprompterSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF1A2B3C4D5E6F7A8B9C0D03 /* TeleprompterSettings.swift */; };
+		FF1A2B3C4D5E6F7A8B9C0D06 /* TeleprompterService.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF1A2B3C4D5E6F7A8B9C0D05 /* TeleprompterService.swift */; };
+		FF1A2B3C4D5E6F7A8B9C0D08 /* SpeechScrollView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF1A2B3C4D5E6F7A8B9C0D07 /* SpeechScrollView.swift */; };
+		FF1A2B3C4D5E6F7A8B9C0D0A /* TeleprompterModule.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF1A2B3C4D5E6F7A8B9C0D09 /* TeleprompterModule.swift */; };
+		FF1A2B3C4D5E6F7A8B9C0D0C /* TeleprompterSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF1A2B3C4D5E6F7A8B9C0D0B /* TeleprompterSettingsView.swift */; };
+		FF1A2B3C4D5E6F7A8B9C0D0E /* TeleprompterManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF1A2B3C4D5E6F7A8B9C0D0D /* TeleprompterManager.swift */; };
+		FF1A2B3C4D5E6F7A8B9C0D10 /* OpenDyslexic3-Regular.ttf in Resources */ = {isa = PBXBuildFile; fileRef = FF1A2B3C4D5E6F7A8B9C0D0F /* OpenDyslexic3-Regular.ttf */; };
+		FF1A2B3C4D5E6F7A8B9C0D16 /* TeleprompterEditorWindowController.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF1A2B3C4D5E6F7A8B9C0D15 /* TeleprompterEditorWindowController.swift */; };
+		FF1A2B3C4D5E6F7A8B9C0D18 /* TeleprompterEditorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF1A2B3C4D5E6F7A8B9C0D17 /* TeleprompterEditorView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -317,6 +327,16 @@
 		B1F747F82EC7E94000F841DB /* LottieView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LottieView.swift; sourceTree = "<group>"; };
 		B1FEB4982C7686630066EBBC /* PanGesture.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PanGesture.swift; sourceTree = "<group>"; };
 		F38DE6472D8243E2008B5C6D /* BatteryActivityManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BatteryActivityManager.swift; sourceTree = "<group>"; };
+		FF1A2B3C4D5E6F7A8B9C0D01 /* TeleprompterEnums.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TeleprompterEnums.swift; sourceTree = "<group>"; };
+		FF1A2B3C4D5E6F7A8B9C0D03 /* TeleprompterSettings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TeleprompterSettings.swift; sourceTree = "<group>"; };
+		FF1A2B3C4D5E6F7A8B9C0D05 /* TeleprompterService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TeleprompterService.swift; sourceTree = "<group>"; };
+		FF1A2B3C4D5E6F7A8B9C0D07 /* SpeechScrollView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpeechScrollView.swift; sourceTree = "<group>"; };
+		FF1A2B3C4D5E6F7A8B9C0D09 /* TeleprompterModule.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TeleprompterModule.swift; sourceTree = "<group>"; };
+		FF1A2B3C4D5E6F7A8B9C0D0B /* TeleprompterSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TeleprompterSettingsView.swift; sourceTree = "<group>"; };
+		FF1A2B3C4D5E6F7A8B9C0D0D /* TeleprompterManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TeleprompterManager.swift; sourceTree = "<group>"; };
+		FF1A2B3C4D5E6F7A8B9C0D0F /* OpenDyslexic3-Regular.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "OpenDyslexic3-Regular.ttf"; sourceTree = "<group>"; };
+		FF1A2B3C4D5E6F7A8B9C0D15 /* TeleprompterEditorWindowController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TeleprompterEditorWindowController.swift; sourceTree = "<group>"; };
+		FF1A2B3C4D5E6F7A8B9C0D17 /* TeleprompterEditorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TeleprompterEditorView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
@@ -569,6 +589,7 @@
 		14CEF4142C5CAED300855D72 /* NotchX */ = {
 			isa = PBXGroup;
 			children = (
+				FF1A2B3C4D5E6F7A8B9C0D13 /* Features */,
 				11F748672EC9AC9600F841DB /* XPCHelperClient */,
 				116398942DF5D6B40052E6AF /* Providers */,
 				14288DE22C6E016F00B9F80C /* observers */,
@@ -769,6 +790,39 @@
 			path = Tips;
 			sourceTree = "<group>";
 		};
+		FF1A2B3C4D5E6F7A8B9C0D11 /* Fonts */ = {
+			isa = PBXGroup;
+			children = (
+				FF1A2B3C4D5E6F7A8B9C0D0F /* OpenDyslexic3-Regular.ttf */,
+			);
+			path = Fonts;
+			sourceTree = "<group>";
+		};
+		FF1A2B3C4D5E6F7A8B9C0D12 /* Teleprompter */ = {
+			isa = PBXGroup;
+			children = (
+				FF1A2B3C4D5E6F7A8B9C0D11 /* Fonts */,
+				FF1A2B3C4D5E6F7A8B9C0D01 /* TeleprompterEnums.swift */,
+				FF1A2B3C4D5E6F7A8B9C0D03 /* TeleprompterSettings.swift */,
+				FF1A2B3C4D5E6F7A8B9C0D05 /* TeleprompterService.swift */,
+				FF1A2B3C4D5E6F7A8B9C0D07 /* SpeechScrollView.swift */,
+				FF1A2B3C4D5E6F7A8B9C0D09 /* TeleprompterModule.swift */,
+				FF1A2B3C4D5E6F7A8B9C0D0B /* TeleprompterSettingsView.swift */,
+				FF1A2B3C4D5E6F7A8B9C0D0D /* TeleprompterManager.swift */,
+				FF1A2B3C4D5E6F7A8B9C0D15 /* TeleprompterEditorWindowController.swift */,
+				FF1A2B3C4D5E6F7A8B9C0D17 /* TeleprompterEditorView.swift */,
+			);
+			path = Teleprompter;
+			sourceTree = "<group>";
+		};
+		FF1A2B3C4D5E6F7A8B9C0D13 /* Features */ = {
+			isa = PBXGroup;
+			children = (
+				FF1A2B3C4D5E6F7A8B9C0D12 /* Teleprompter */,
+			);
+			path = Features;
+			sourceTree = "<group>";
+		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
@@ -900,6 +954,7 @@
 				112B0EB92E30DD0F00562D6C /* mediaremote-adapter.pl in Resources */,
 				B17266E12C6532560031BA0D /* Localizable.xcstrings in Resources */,
 				14A7E5972C65FD31008C1BE9 /* notchx.m4a in Resources */,
+				FF1A2B3C4D5E6F7A8B9C0D10 /* OpenDyslexic3-Regular.ttf in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1036,6 +1091,15 @@
 				1100290C2E847E2800035A57 /* NSItemProvider+LoadHelpers.swift in Sources */,
 				11CFC6632E09918400748C80 /* MusicControllerSelectionView.swift in Sources */,
 				B1F0A0022E60000100000001 /* BrightnessManager.swift in Sources */,
+				FF1A2B3C4D5E6F7A8B9C0D02 /* TeleprompterEnums.swift in Sources */,
+				FF1A2B3C4D5E6F7A8B9C0D04 /* TeleprompterSettings.swift in Sources */,
+				FF1A2B3C4D5E6F7A8B9C0D06 /* TeleprompterService.swift in Sources */,
+				FF1A2B3C4D5E6F7A8B9C0D08 /* SpeechScrollView.swift in Sources */,
+				FF1A2B3C4D5E6F7A8B9C0D0A /* TeleprompterModule.swift in Sources */,
+				FF1A2B3C4D5E6F7A8B9C0D0C /* TeleprompterSettingsView.swift in Sources */,
+				FF1A2B3C4D5E6F7A8B9C0D0E /* TeleprompterManager.swift in Sources */,
+				FF1A2B3C4D5E6F7A8B9C0D16 /* TeleprompterEditorWindowController.swift in Sources */,
+				FF1A2B3C4D5E6F7A8B9C0D18 /* TeleprompterEditorView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

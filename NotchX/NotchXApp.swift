@@ -408,6 +408,54 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             }
         }
 
+        NotificationCenter.default.addObserver(
+            forName: .teleprompterRequestOpen, object: nil, queue: nil
+        ) { [weak self] _ in
+            Task { @MainActor in
+                guard let self else { return }
+                var viewModel = self.vm
+                if Defaults[.showOnAllDisplays] {
+                    let mouseLocation = NSEvent.mouseLocation
+                    for screen in NSScreen.screens {
+                        if screen.frame.contains(mouseLocation),
+                           let uuid = screen.displayUUID,
+                           let screenVM = self.viewModels[uuid] {
+                            viewModel = screenVM
+                            break
+                        }
+                    }
+                }
+                self.closeNotchTask?.cancel()
+                self.closeNotchTask = nil
+                if viewModel.notchState == .closed {
+                    viewModel.open()
+                }
+            }
+        }
+
+        NotificationCenter.default.addObserver(
+            forName: .teleprompterRequestClose, object: nil, queue: nil
+        ) { [weak self] _ in
+            Task { @MainActor in
+                guard let self else { return }
+                NotchXViewCoordinator.shared.currentView = .home
+                try? await Task.sleep(for: .milliseconds(300))
+                var viewModel = self.vm
+                if Defaults[.showOnAllDisplays] {
+                    let mouseLocation = NSEvent.mouseLocation
+                    for screen in NSScreen.screens {
+                        if screen.frame.contains(mouseLocation),
+                           let uuid = screen.displayUUID,
+                           let screenVM = self.viewModels[uuid] {
+                            viewModel = screenVM
+                            break
+                        }
+                    }
+                }
+                viewModel.close()
+            }
+        }
+
         if !Defaults[.showOnAllDisplays] {
             let viewModel = self.vm
             let window = createNotchXWindow(
@@ -601,6 +649,8 @@ extension Notification.Name {
     static let showOnAllDisplaysChanged = Notification.Name("showOnAllDisplaysChanged")
     static let automaticallySwitchDisplayChanged = Notification.Name("automaticallySwitchDisplayChanged")
     static let expandedDragDetectionChanged = Notification.Name("expandedDragDetectionChanged")
+    static let teleprompterRequestOpen = Notification.Name("teleprompterRequestOpen")
+    static let teleprompterRequestClose = Notification.Name("teleprompterRequestClose")
 }
 
 extension CGRect: @retroactive Hashable {

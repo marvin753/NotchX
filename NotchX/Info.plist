@@ -15,6 +15,12 @@
 	<string>https://MarvinBarsal.github.io/NotchX/appcast.xml</string>
 	<key>SUPublicEDKey</key>
 	<string>B1Y47t8C/v8ImurYA+9arEsuCrpxwJSviekiflMElbI=</string>
+	<key>NSSpeechRecognitionUsageDescription</key>
+	<string>NotchX uses speech recognition for the teleprompter feature to track your reading progress in real time.</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>NotchX needs microphone access for the teleprompter to listen to your speech and highlight words as you read.</string>
+	<key>ATSApplicationFontsPath</key>
+	<string>Fonts</string>
 	<key>UTImportedTypeDeclarations</key>
 	<array>
 		<dict/>

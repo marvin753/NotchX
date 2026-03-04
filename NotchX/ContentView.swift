@@ -463,6 +463,17 @@ struct ContentView: View {
                                     )),
                                 removal: .opacity
                             ))
+                    case .teleprompter:
+                        TeleprompterModule()
+                            .transition(.asymmetric(
+                                insertion: .offset(y: -30)
+                                    .combined(with: .opacity)
+                                    .combined(with: .modifier(
+                                        active: BlurTransitionModifier(blurRadius: 20),
+                                        identity: BlurTransitionModifier(blurRadius: 0)
+                                    )),
+                                removal: .opacity
+                            ))
                     }
                 }
                 .animation(.smooth(duration: 0.45), value: coordinator.currentView)

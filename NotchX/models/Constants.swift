@@ -196,4 +196,14 @@ extension Defaults.Keys {
     }
 
     static let didClearLegacyURLCacheV1 = Key<Bool>("didClearLegacyURLCache_v1", default: false)
+
+    // MARK: Teleprompter
+    static let teleprompterEnabled = Key<Bool>("teleprompterEnabled", default: false)
+    static let teleprompterListeningMode = Key<TeleprompterListeningMode>("teleprompterListeningMode", default: .wordTracking)
+    static let teleprompterSpeechLocale = Key<String>("teleprompterSpeechLocale", default: Locale.current.identifier)
+    static let teleprompterSelectedMicUID = Key<String>("teleprompterSelectedMicUID", default: "")
+    static let teleprompterScrollSpeed = Key<Double>("teleprompterScrollSpeed", default: 3.0)
+    static let teleprompterFontFamily = Key<TeleprompterFontFamily>("teleprompterFontFamily", default: .sans)
+    static let teleprompterFontSize = Key<TeleprompterFontSize>("teleprompterFontSize", default: .sm)
+    static let teleprompterFontColor = Key<TeleprompterFontColor>("teleprompterFontColor", default: .white)
 }

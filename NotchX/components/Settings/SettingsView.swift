@@ -56,6 +56,9 @@ struct SettingsView: View {
                     NavigationLink(value: "Calendar") {
                         SettingsSidebarLabel(title: "Calendar", icon: "calendar", color: .red)
                     }
+                    NavigationLink(value: "Teleprompter") {
+                        SettingsSidebarLabel(title: "Teleprompter", icon: "text.word.spacing", color: .mint)
+                    }
                 }
 
                 Section("Appearance") {
@@ -105,6 +108,8 @@ struct SettingsView: View {
                     NowPlayingSettings()
                 case "Calendar":
                     CalendarSettings()
+                case "Teleprompter":
+                    TeleprompterSettingsView()
                 case "Darstellung":
                     Darstellung()
                 case "Shelf":

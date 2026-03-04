@@ -501,6 +501,9 @@
         }
       }
     },
+    "%.1f words/sec" : {
+
+    },
     "%.1fs" : {
       "localizations" : {
         "ar" : {
@@ -1700,6 +1703,9 @@
           }
         }
       }
+    },
+    "Active" : {
+
     },
     "Add" : {
       "localizations" : {
@@ -3698,206 +3704,6 @@
           "stringUnit" : {
             "state" : "needs_review",
             "value" : "使用剪贴板管理器提升你的效率"
-          }
-        }
-      }
-    },
-    "NotchX" : {
-      "localizations" : {
-        "ar" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "NotchX"
-          }
-        },
-        "cs" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "NotchX"
-          }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "NotchX"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "NotchX"
-          }
-        },
-        "en-GB" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "NotchX"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "NotchX"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "NotchX"
-          }
-        },
-        "hu" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "NotchX"
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "NotchX"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "NotchX"
-          }
-        },
-        "pl" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "NotchX"
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "NotchX"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "NotchX"
-          }
-        },
-        "tr" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "NotchX"
-          }
-        },
-        "uk" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "NotchX"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "NotchX"
-          }
-        }
-      }
-    },
-    "NotchX" : {
-      "localizations" : {
-        "ar" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "NotchX"
-          }
-        },
-        "cs" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "NotchX"
-          }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "NotchX"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "NotchX"
-          }
-        },
-        "en-GB" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "NotchX"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "NotchX"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "NotchX"
-          }
-        },
-        "hu" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "NotchX"
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "NotchX"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "NotchX"
-          }
-        },
-        "pl" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "NotchX"
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "NotchX"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "NotchX"
-          }
-        },
-        "tr" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "NotchX"
-          }
-        },
-        "uk" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "NotchX"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "NotchX"
           }
         }
       }
@@ -5902,6 +5708,9 @@
         }
       }
     },
+    "Coming Soon" : {
+
+    },
     "Continue" : {
       "localizations" : {
         "ar" : {
@@ -7001,6 +6810,9 @@
           }
         }
       }
+    },
+    "Darstellung" : {
+
     },
     "Default" : {
       "localizations" : {
@@ -8206,106 +8018,6 @@
         }
       }
     },
-    "Enable mirror" : {
-      "localizations" : {
-        "ar" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Enable mirror"
-          }
-        },
-        "cs" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Povolit zrcadlo"
-          }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Spiegelfunktion aktivieren"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Enable mirror"
-          }
-        },
-        "en-GB" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Enable mirror"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Habilitar espejo"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Activer le miroir"
-          }
-        },
-        "hu" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Enable mirror"
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Abilita specchio"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "거울 켜기"
-          }
-        },
-        "pl" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Włącz mirror"
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Enable mirror"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Enable mirror"
-          }
-        },
-        "tr" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Aynayı aktifleştir"
-          }
-        },
-        "uk" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Enable mirror"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "启用虚拟镜像"
-          }
-        }
-      }
-    },
     "Enable colored spectrograms" : {
       "extractionState" : "stale",
       "localizations" : {
@@ -8408,6 +8120,7 @@
       }
     },
     "Enable gestures" : {
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -8707,6 +8420,106 @@
         }
       }
     },
+    "Enable mirror" : {
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Enable mirror"
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Povolit zrcadlo"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Spiegelfunktion aktivieren"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Enable mirror"
+          }
+        },
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Enable mirror"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Habilitar espejo"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Activer le miroir"
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Enable mirror"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Abilita specchio"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "거울 켜기"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Włącz mirror"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Enable mirror"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Enable mirror"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Aynayı aktifleştir"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Enable mirror"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "启用虚拟镜像"
+          }
+        }
+      }
+    },
     "Enable shelf" : {
       "localizations" : {
         "ar" : {
@@ -8806,6 +8619,9 @@
           }
         }
       }
+    },
+    "Enable Teleprompter" : {
+
     },
     "Enable window shadow" : {
       "localizations" : {
@@ -9408,6 +9224,12 @@
         }
       }
     },
+    "Family" : {
+
+    },
+    "Fast" : {
+
+    },
     "Files dropped on the shelf will be shared via this service" : {
       "localizations" : {
         "ar" : {
@@ -9607,6 +9429,9 @@
           }
         }
       }
+    },
+    "Font" : {
+
     },
     "Full screen behavior" : {
       "localizations" : {
@@ -10408,6 +10233,9 @@
         }
       }
     },
+    "Guidance Mode" : {
+
+    },
     "Hide all-day events" : {
       "localizations" : {
         "ar" : {
@@ -11208,7 +11036,11 @@
         }
       }
     },
+    "Highlight Color" : {
+
+    },
     "Hover delay" : {
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -11509,6 +11341,7 @@
       }
     },
     "HUDs" : {
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -11607,6 +11440,9 @@
           }
         }
       }
+    },
+    "Idle" : {
+
     },
     "In progress" : {
       "localizations" : {
@@ -11909,6 +11745,9 @@
         }
       }
     },
+    "Language" : {
+
+    },
     "Layout Preview" : {
       "localizations" : {
         "ar" : {
@@ -12008,6 +11847,9 @@
           }
         }
       }
+    },
+    "Live Activities" : {
+
     },
     "Lottie JSON URL" : {
       "localizations" : {
@@ -13709,6 +13551,9 @@
         }
       }
     },
+    "Microphone" : {
+
+    },
     "Mirror" : {
       "localizations" : {
         "ar" : {
@@ -13908,6 +13753,9 @@
           }
         }
       }
+    },
+    "Mode" : {
+
     },
     "More" : {
       "localizations" : {
@@ -15510,6 +15358,115 @@
         }
       }
     },
+    "NotchX" : {
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "NotchX"
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "NotchX"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "NotchX"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "NotchX"
+          }
+        },
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "NotchX"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "NotchX"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "NotchX"
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "NotchX"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "NotchX"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "NotchX"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "NotchX"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "NotchX"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "NotchX"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "NotchX"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "NotchX"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "NotchX"
+          }
+        }
+      }
+    },
+    "Notifications" : {
+
+    },
+    "Now Playing" : {
+
+    },
+    "Now Playing Appearance" : {
+
+    },
     "Open Calendar Settings" : {
       "localizations" : {
         "ar" : {
@@ -15609,6 +15566,9 @@
           }
         }
       }
+    },
+    "Open Editor" : {
+
     },
     "Open Notch" : {
       "localizations" : {
@@ -15711,6 +15671,7 @@
       }
     },
     "Open notch on hover" : {
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -16010,6 +15971,9 @@
         }
       }
     },
+    "Open Teleprompter Editor" : {
+
+    },
     "Option key behaviour" : {
       "localizations" : {
         "ar" : {
@@ -16109,6 +16073,9 @@
           }
         }
       }
+    },
+    "Paste or type your script here..." : {
+
     },
     "Pick a Color" : {
       "localizations" : {
@@ -17511,6 +17478,7 @@
       }
     },
     "Replaces the standard macOS volume, display brightness, and keyboard brightness HUDs with a custom design." : {
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
@@ -18111,6 +18079,9 @@
           }
         }
       }
+    },
+    "Scroll Speed" : {
+
     },
     "Select the music source you want to use. You can change this later in the app settings." : {
       "localizations" : {
@@ -20212,6 +20183,9 @@
         }
       }
     },
+    "Size" : {
+
+    },
     "Slider color" : {
       "localizations" : {
         "ar" : {
@@ -20311,6 +20285,9 @@
           }
         }
       }
+    },
+    "Slow" : {
+
     },
     "Sneak Peek shows the media title and artist under the notch for a few seconds." : {
       "localizations" : {
@@ -20612,6 +20589,12 @@
         }
       }
     },
+    "Soon" : {
+
+    },
+    "Speech Recognition" : {
+
+    },
     "Speed" : {
       "localizations" : {
         "ar" : {
@@ -20811,6 +20794,12 @@
           }
         }
       }
+    },
+    "Start" : {
+
+    },
+    "Stop" : {
+
     },
     "Stopped" : {
       "extractionState" : "stale",
@@ -21114,6 +21103,9 @@
         }
       }
     },
+    "System Default" : {
+
+    },
     "System features" : {
       "localizations" : {
         "ar" : {
@@ -21213,6 +21205,9 @@
           }
         }
       }
+    },
+    "Teleprompter" : {
+
     },
     "Time to Full Charge: %lld min" : {
       "localizations" : {
@@ -21614,7 +21609,11 @@
         }
       }
     },
+    "Two-finger swipe up on notch to close, two-finger swipe down on notch to open" : {
+
+    },
     "Two-finger swipe up on notch to close, two-finger swipe down on notch to open when **Open notch on hover** option is disabled" : {
+      "extractionState" : "stale",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
