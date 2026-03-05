@@ -64,14 +64,15 @@ struct HUDSettingsPage: View {
                     Text("Option key behaviour")
                         .font(.body)
 
-                    NXSegmentedControl(
+                    NXVisualPreviewPicker(
                         items: [
-                            (label: "Settings", value: OptionKeyAction.openSettings, icon: "gearshape"),
-                            (label: "Show HUD", value: OptionKeyAction.showHUD, icon: "dial.medium"),
-                            (label: "None", value: OptionKeyAction.none, icon: "slash.circle"),
+                            NXPreviewItem(label: "Settings", value: OptionKeyAction.openSettings, icon: "gearshape"),
+                            NXPreviewItem(label: "Show HUD", value: OptionKeyAction.showHUD, icon: "dial.medium"),
+                            NXPreviewItem(label: "None", value: OptionKeyAction.none, icon: "slash.circle"),
                         ],
                         selection: $optionKeyAction,
-                        showLabels: false
+                        cardHeight: 60,
+                        iconSize: 22
                     )
                 }
 

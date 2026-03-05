@@ -291,17 +291,18 @@ struct GeneralSettings: View {
                 Text("Gesture sensitivity")
                     .font(.body)
 
-                NXSegmentedControl(
+                NXVisualPreviewPicker(
                     items: [
-                        (label: "High", value: 100.0, icon: "hare"),
-                        (label: "Medium", value: 200.0, icon: "figure.walk"),
-                        (label: "Low", value: 300.0, icon: "tortoise"),
+                        NXPreviewItem(label: "High", value: 100.0, icon: "hare"),
+                        NXPreviewItem(label: "Medium", value: 200.0, icon: "figure.walk"),
+                        NXPreviewItem(label: "Low", value: 300.0, icon: "tortoise"),
                     ],
                     selection: Binding(
                         get: { gestureSensitivity },
                         set: { gestureSensitivity = $0 }
                     ),
-                    showLabels: false
+                    cardHeight: 60,
+                    iconSize: 22
                 )
             }
         } header: {

@@ -85,25 +85,55 @@ struct TeleprompterSettingsView: View {
                 }
 
                 Section {
-                    NXSegmentedControl(
-                        items: [
-                            (label: "Sans", value: TeleprompterFontFamily.sans, icon: "textformat"),
-                            (label: "Serif", value: TeleprompterFontFamily.serif, icon: "textformat.alt"),
-                            (label: "Mono", value: TeleprompterFontFamily.mono, icon: "chevron.left.forwardslash.chevron.right"),
-                            (label: "Dyslexia", value: TeleprompterFontFamily.dyslexia, icon: "accessibility"),
-                        ],
-                        selection: $fontFamily
-                    )
+                    VStack(alignment: .leading, spacing: 10) {
+                        Text("Font style")
+                            .font(.body)
 
-                    NXSegmentedControl(
-                        items: [
-                            (label: "XS", value: TeleprompterFontSize.xs, icon: "textformat.size.smaller"),
-                            (label: "S", value: TeleprompterFontSize.sm, icon: "textformat.size"),
-                            (label: "L", value: TeleprompterFontSize.lg, icon: "textformat.size.larger"),
-                            (label: "XL", value: TeleprompterFontSize.xl, icon: "textformat.size.larger"),
-                        ],
-                        selection: $fontSize
-                    )
+                        NXVisualPreviewPicker(
+                            items: [
+                                NXPreviewItem(label: "Sans", value: TeleprompterFontFamily.sans) {
+                                    Text("Ag").font(.system(size: 28, weight: .semibold, design: .default))
+                                },
+                                NXPreviewItem(label: "Serif", value: TeleprompterFontFamily.serif) {
+                                    Text("Ag").font(.system(size: 28, weight: .semibold, design: .serif))
+                                },
+                                NXPreviewItem(label: "Mono", value: TeleprompterFontFamily.mono) {
+                                    Text("Ag").font(.system(size: 28, weight: .semibold, design: .monospaced))
+                                },
+                                NXPreviewItem(label: "Dyslexia", value: TeleprompterFontFamily.dyslexia) {
+                                    Text("Ag").font(Font.custom("OpenDyslexic3", size: 28).weight(.semibold))
+                                },
+                            ],
+                            selection: $fontFamily,
+                            cardHeight: 60,
+                            iconSize: 22
+                        )
+                    }
+
+                    VStack(alignment: .leading, spacing: 10) {
+                        Text("Font size")
+                            .font(.body)
+
+                        NXVisualPreviewPicker(
+                            items: [
+                                NXPreviewItem(label: "XS", value: TeleprompterFontSize.xs) {
+                                    Text("Ag").font(.system(size: 18, weight: .semibold))
+                                },
+                                NXPreviewItem(label: "S", value: TeleprompterFontSize.sm) {
+                                    Text("Ag").font(.system(size: 24, weight: .semibold))
+                                },
+                                NXPreviewItem(label: "L", value: TeleprompterFontSize.lg) {
+                                    Text("Ag").font(.system(size: 32, weight: .semibold))
+                                },
+                                NXPreviewItem(label: "XL", value: TeleprompterFontSize.xl) {
+                                    Text("Ag").font(.system(size: 40, weight: .semibold))
+                                },
+                            ],
+                            selection: $fontSize,
+                            cardHeight: 60,
+                            iconSize: 22
+                        )
+                    }
 
                     NXIconGridPicker(
                         items: TeleprompterFontColor.allCases.map {

@@ -91,6 +91,8 @@ struct NXVisualPreviewPicker<Selection: Hashable & Equatable>: View {
 
     let items: [NXPreviewItem<Selection>]
     @Binding var selection: Selection
+    var cardHeight: CGFloat = 85
+    var iconSize: CGFloat = 30
 
     var body: some View {
         HStack(alignment: .top, spacing: 8) {
@@ -132,12 +134,12 @@ struct NXVisualPreviewPicker<Selection: Hashable & Equatable>: View {
                 preview
             } else if let icon = item.icon {
                 Image(systemName: icon)
-                    .font(.system(size: 30))
+                    .font(.system(size: iconSize))
                     .foregroundStyle(isSelected ? Color.effectiveAccent : Color.secondary)
             }
         }
         .frame(maxWidth: .infinity)
-        .frame(height: 85)
+        .frame(height: cardHeight)
         .background(
             isSelected
                 ? Color.effectiveAccent.opacity(0.1)

@@ -269,13 +269,14 @@ struct Darstellung: View {
                 Text("Mirror shape")
                     .font(.body)
 
-                NXSegmentedControl(
+                NXVisualPreviewPicker(
                     items: [
-                        (label: "Circle", value: MirrorShapeEnum.circle, icon: "circle"),
-                        (label: "Square", value: MirrorShapeEnum.rectangle, icon: "square"),
+                        NXPreviewItem(label: "Circle", value: MirrorShapeEnum.circle, icon: "circle"),
+                        NXPreviewItem(label: "Square", value: MirrorShapeEnum.rectangle, icon: "square"),
                     ],
                     selection: $mirrorShape,
-                    showLabels: false
+                    cardHeight: 60,
+                    iconSize: 22
                 )
             }
 
