@@ -115,6 +115,7 @@ struct NXVisualPreviewPicker<Selection: Hashable & Equatable>: View {
                 cardContent(for: item, isSelected: isSelected)
                 captionLabel(item.label, isSelected: isSelected)
             }
+            .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
         .frame(maxWidth: .infinity)

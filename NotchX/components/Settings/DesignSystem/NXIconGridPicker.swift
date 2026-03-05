@@ -131,6 +131,7 @@ struct NXIconGridPicker<Selection: Hashable & Equatable>: View {
                 captionLabel(item.label, isSelected: isSelected)
             }
             .frame(maxWidth: .infinity)
+            .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
         .scaleEffect(isSelected ? 1.08 : 1.0)

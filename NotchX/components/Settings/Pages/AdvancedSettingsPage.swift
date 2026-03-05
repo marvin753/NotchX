@@ -340,6 +340,7 @@ struct AccentCircleButton: View {
                         .frame(width: 28, height: 28)
                 }
             }
+            .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
         .help(isSystemDefault ? "Use your macOS system accent color" : "")

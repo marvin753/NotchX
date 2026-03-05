@@ -145,6 +145,7 @@ struct NXSegmentedControl<Selection: Hashable & Equatable>: View {
             }
         } label: {
             segmentLabel(for: item, isActive: isActive)
+                .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
         .background(pillBackground(isActive: isActive))
