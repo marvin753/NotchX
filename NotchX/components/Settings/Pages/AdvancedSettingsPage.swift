@@ -108,6 +108,7 @@ struct Advanced: View {
                 .font(.caption)
         }
         .onAppear { initializeAccentColorState() }
+        .onChange(of: useCustomAccentColor) { _, _ in forceUiUpdate() }
     }
 
     @ViewBuilder
@@ -261,12 +262,10 @@ struct Advanced: View {
     // MARK: - Private Helpers
 
     private func forceUiUpdate() {
-        DispatchQueue.main.async {
-            NotificationCenter.default.post(
-                name: Notification.Name("AccentColorChanged"),
-                object: nil
-            )
-        }
+        NotificationCenter.default.post(
+            name: Notification.Name("AccentColorChanged"),
+            object: nil
+        )
     }
 
     private func saveCustomColor(_ color: Color) {
