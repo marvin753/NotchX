@@ -47,7 +47,7 @@ struct TeleprompterSettingsView: View {
                     NXSectionHeader(title: "Guidance Mode")
                 }
 
-                if listeningMode != .wordTracking {
+                if listeningMode == .classic {
                     Section {
                         NXStyledSlider(
                             value: $scrollSpeed,
@@ -101,7 +101,7 @@ struct TeleprompterSettingsView: View {
                                     Text("Ag").font(.system(size: 28, weight: .semibold, design: .monospaced))
                                 },
                                 NXPreviewItem(label: "Dyslexia", value: TeleprompterFontFamily.dyslexia) {
-                                    Text("Ag").font(Font.custom("OpenDyslexic3", size: 28).weight(.semibold))
+                                    Text("Ag").font(Font.custom("OpenDyslexicThree-Regular", size: 28).weight(.semibold))
                                 },
                             ],
                             selection: $fontFamily,

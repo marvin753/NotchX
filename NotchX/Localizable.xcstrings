@@ -2209,6 +2209,9 @@
         }
       }
     },
+    "Ag" : {
+
+    },
     "All-day" : {
       "localizations" : {
         "ar" : {
@@ -9453,6 +9456,12 @@
         }
       }
     },
+    "Font size" : {
+
+    },
+    "Font style" : {
+
+    },
     "Full screen behavior" : {
       "localizations" : {
         "ar" : {
@@ -16421,6 +16430,9 @@
           }
         }
       }
+    },
+    "Preview" : {
+
     },
     "Progress bar style" : {
       "localizations" : {

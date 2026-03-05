@@ -138,7 +138,7 @@ struct SpeechScrollView: View {
                 }
             }
             .onChange(of: smoothWordProgress) { _, _ in
-                if isListening && smoothScroll {
+                if isListening && smoothScroll && !isUserScrolling {
                     manualOffset = 0
                     recalcCenter(containerHeight: containerHeight)
                 }
@@ -163,7 +163,7 @@ struct SpeechScrollView: View {
             .overlay(
                 ScrollWheelView(
                     onScroll: { delta in
-                        let canScroll = smoothScroll ? isListening : !isListening
+                        let canScroll = smoothScroll ? true : !isListening
                         guard canScroll else { return }
 
                         if smoothScroll && !isUserScrolling {

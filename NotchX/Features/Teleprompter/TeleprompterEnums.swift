@@ -47,7 +47,7 @@ enum TeleprompterFontFamily: String, CaseIterable, Defaults.Serializable {
         case .mono:
             return NSFont.monospacedSystemFont(ofSize: size, weight: weight)
         case .dyslexia:
-            return NSFont(name: "OpenDyslexic3", size: size)
+            return NSFont(name: "OpenDyslexicThree-Regular", size: size)
                 ?? NSFont.systemFont(ofSize: size, weight: weight)
         }
     }

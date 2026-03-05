@@ -139,6 +139,18 @@ struct SettingsView: View {
         .background(.ultraThinMaterial)
         .tint(.effectiveAccent)
         .id(accentColorUpdateTrigger)
+        .onChange(of: selectedTab) { oldValue, newValue in
+            if newValue == "Teleprompter" {
+                TeleprompterManager.shared.startPreview()
+            } else if oldValue == "Teleprompter" {
+                TeleprompterManager.shared.stopPreview()
+            }
+        }
+        .onDisappear {
+            if TeleprompterManager.shared.isPreviewMode {
+                TeleprompterManager.shared.stopPreview()
+            }
+        }
         .onReceive(NotificationCenter.default.publisher(for: NSNotification.Name("AccentColorChanged"))) { _ in
             accentColorUpdateTrigger = UUID()
         }

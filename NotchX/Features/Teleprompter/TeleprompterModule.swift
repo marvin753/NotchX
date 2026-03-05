@@ -27,7 +27,9 @@ struct TeleprompterModule: View {
 
     var body: some View {
         Group {
-            if manager.isActive {
+            if manager.isPreviewMode {
+                previewView
+            } else if manager.isActive {
                 activeView
             } else {
                 emptyStateView
@@ -61,6 +63,44 @@ struct TeleprompterModule: View {
             .tint(.accentColor)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
+    }
+
+    // MARK: - Preview View
+
+    private var previewView: some View {
+        ZStack(alignment: .topTrailing) {
+            SpeechScrollView(
+                words: manager.previewWords,
+                highlightedCharCount: manager.previewEffectiveCharCount,
+                font: teleprompterFont,
+                highlightColor: fontColor.color,
+                onWordTap: nil,
+                onManualScroll: { scrolling, progress in
+                    manager.setPreviewManualScrolling(scrolling, progress: progress)
+                },
+                smoothScroll: useSmoothScroll,
+                smoothWordProgress: manager.previewWordProgress,
+                isListening: true
+            )
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+
+            previewBadge
+                .padding(8)
+        }
+    }
+
+    private var previewBadge: some View {
+        HStack(spacing: 4) {
+            Image(systemName: "eye.fill")
+                .font(.system(size: 9))
+            Text("Preview")
+                .font(.system(size: 9, weight: .medium))
+        }
+        .foregroundStyle(.white.opacity(0.7))
+        .padding(.horizontal, 8)
+        .padding(.vertical, 4)
+        .background(.ultraThinMaterial)
+        .clipShape(Capsule())
     }
 
     // MARK: - Active View

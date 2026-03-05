@@ -157,6 +157,7 @@
 		FF1A2B3C4D5E6F7A8B9C0D10 /* OpenDyslexic3-Regular.ttf in Resources */ = {isa = PBXBuildFile; fileRef = FF1A2B3C4D5E6F7A8B9C0D0F /* OpenDyslexic3-Regular.ttf */; };
 		FF1A2B3C4D5E6F7A8B9C0D16 /* TeleprompterEditorWindowController.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF1A2B3C4D5E6F7A8B9C0D15 /* TeleprompterEditorWindowController.swift */; };
 		FF1A2B3C4D5E6F7A8B9C0D18 /* TeleprompterEditorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF1A2B3C4D5E6F7A8B9C0D17 /* TeleprompterEditorView.swift */; };
+		FF1A2B3C4D5E6F7A8B9C0D1A /* TeleprompterPreviewTexts.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF1A2B3C4D5E6F7A8B9C0D19 /* TeleprompterPreviewTexts.swift */; };
 		DD00AABB2F000001CCDD0031 /* NXSegmentedControl.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD00AABB2F000001CCDD0011 /* NXSegmentedControl.swift */; };
 		DD00AABB2F000001CCDD0032 /* NXVisualPreviewPicker.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD00AABB2F000001CCDD0012 /* NXVisualPreviewPicker.swift */; };
 		DD00AABB2F000001CCDD0033 /* NXIconGridPicker.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD00AABB2F000001CCDD0013 /* NXIconGridPicker.swift */; };
@@ -354,6 +355,7 @@
 		FF1A2B3C4D5E6F7A8B9C0D0F /* OpenDyslexic3-Regular.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "OpenDyslexic3-Regular.ttf"; sourceTree = "<group>"; };
 		FF1A2B3C4D5E6F7A8B9C0D15 /* TeleprompterEditorWindowController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TeleprompterEditorWindowController.swift; sourceTree = "<group>"; };
 		FF1A2B3C4D5E6F7A8B9C0D17 /* TeleprompterEditorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TeleprompterEditorView.swift; sourceTree = "<group>"; };
+		FF1A2B3C4D5E6F7A8B9C0D19 /* TeleprompterPreviewTexts.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TeleprompterPreviewTexts.swift; sourceTree = "<group>"; };
 		DD00AABB2F000001CCDD0011 /* NXSegmentedControl.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NXSegmentedControl.swift; sourceTree = "<group>"; };
 		DD00AABB2F000001CCDD0012 /* NXVisualPreviewPicker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NXVisualPreviewPicker.swift; sourceTree = "<group>"; };
 		DD00AABB2F000001CCDD0013 /* NXIconGridPicker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NXIconGridPicker.swift; sourceTree = "<group>"; };
@@ -878,6 +880,7 @@
 				FF1A2B3C4D5E6F7A8B9C0D0D /* TeleprompterManager.swift */,
 				FF1A2B3C4D5E6F7A8B9C0D15 /* TeleprompterEditorWindowController.swift */,
 				FF1A2B3C4D5E6F7A8B9C0D17 /* TeleprompterEditorView.swift */,
+				FF1A2B3C4D5E6F7A8B9C0D19 /* TeleprompterPreviewTexts.swift */,
 			);
 			path = Teleprompter;
 			sourceTree = "<group>";
@@ -1167,6 +1170,7 @@
 				FF1A2B3C4D5E6F7A8B9C0D0E /* TeleprompterManager.swift in Sources */,
 				FF1A2B3C4D5E6F7A8B9C0D16 /* TeleprompterEditorWindowController.swift in Sources */,
 				FF1A2B3C4D5E6F7A8B9C0D18 /* TeleprompterEditorView.swift in Sources */,
+				FF1A2B3C4D5E6F7A8B9C0D1A /* TeleprompterPreviewTexts.swift in Sources */,
 				DD00AABB2F000001CCDD0031 /* NXSegmentedControl.swift in Sources */,
 				DD00AABB2F000001CCDD0032 /* NXVisualPreviewPicker.swift in Sources */,
 				DD00AABB2F000001CCDD0033 /* NXIconGridPicker.swift in Sources */,

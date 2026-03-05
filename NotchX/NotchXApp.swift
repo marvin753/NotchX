@@ -7,6 +7,7 @@
 
 import AVFoundation
 import Combine
+import CoreText
 import Defaults
 import KeyboardShortcuts
 import Sparkle
@@ -278,6 +279,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     func applicationDidFinishLaunching(_ notification: Notification) {
+        registerTeleprompterFonts()
 
         NotificationCenter.default.addObserver(
             self,
@@ -482,6 +484,11 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         }
 
         previousScreens = NSScreen.screens
+    }
+
+    private func registerTeleprompterFonts() {
+        guard let fontURL = Bundle.main.url(forResource: "OpenDyslexic3-Regular", withExtension: "ttf") else { return }
+        CTFontManagerRegisterFontURLs([fontURL] as CFArray, .process, true, nil)
     }
 
     func playWelcomeSound() {

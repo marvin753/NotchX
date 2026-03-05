@@ -22,6 +22,13 @@ class TeleprompterManager: ObservableObject {
     @Published var words: [String] = []
     @Published var timerWordProgress: Double = 0
     @Published var lastError: String? = nil
+    @Published var isPreviewMode: Bool = false
+    @Published var previewWords: [String] = []
+    @Published var previewWordProgress: Double = 0
+    @Published var previewCharProgress: Int = 0
+    private var previewTimer: Timer?
+    private var previewModeCancellable: AnyCancellable?
+    private var previewLocaleCancellable: AnyCancellable?
 
     let service = TeleprompterService()
 
@@ -42,6 +49,15 @@ class TeleprompterManager: ObservableObject {
         }
     }
 
+    var previewEffectiveCharCount: Int {
+        switch Defaults[.teleprompterListeningMode] {
+        case .wordTracking:
+            return previewCharProgress
+        case .classic, .silencePaused:
+            return charOffsetForWordProgress(previewWordProgress, in: previewWords)
+        }
+    }
+
     private init() {
         enabledCancellable = Defaults.publisher(.teleprompterEnabled)
             .dropFirst()
@@ -51,6 +67,9 @@ class TeleprompterManager: ObservableObject {
                     if !change.newValue {
                         if self.isActive {
                             self.stopTeleprompter()
+                        }
+                        if self.isPreviewMode {
+                            self.stopPreview()
                         }
                         if NotchXViewCoordinator.shared.currentView == .teleprompter {
                             NotchXViewCoordinator.shared.currentView = .home
@@ -74,11 +93,40 @@ class TeleprompterManager: ObservableObject {
         charCountCancellable = service.$recognizedCharCount
             .receive(on: DispatchQueue.main)
             .sink { [weak self] _ in self?.objectWillChange.send() }
+
+        // Preview: react to mode changes
+        previewModeCancellable = Defaults.publisher(.teleprompterListeningMode)
+            .dropFirst()
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] _ in
+                guard let self, self.isPreviewMode else { return }
+                self.previewCharProgress = 0
+                self.previewWordProgress = 0
+                self.startPreviewTimer()
+            }
+
+        // Preview: react to locale changes
+        previewLocaleCancellable = Defaults.publisher(.teleprompterSpeechLocale)
+            .dropFirst()
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] _ in
+                guard let self, self.isPreviewMode else { return }
+                let lang = TeleprompterPreviewTexts.languageCode(
+                    from: Defaults[.teleprompterSpeechLocale]
+                )
+                let text = TeleprompterPreviewTexts.texts[lang]
+                    ?? TeleprompterPreviewTexts.texts["en"]!
+                self.previewWords = splitTeleprompterWords(text)
+                self.previewCharProgress = 0
+                self.previewWordProgress = 0
+                self.startPreviewTimer()
+            }
     }
 
     // MARK: - Start
 
     func startTeleprompter() {
+        if isPreviewMode { stopPreview() }
         // If already active, stop first to balance activeSessions
         if isActive {
             stopTeleprompterInternal()
@@ -184,6 +232,10 @@ class TeleprompterManager: ObservableObject {
     // MARK: - Notch Closed
 
     func handleNotchClosed() {
+        if isPreviewMode {
+            stopPreview()
+            return
+        }
         guard isActive else { return }
         isStoppingFromNotchClose = true
         stopTeleprompter()
@@ -198,6 +250,26 @@ class TeleprompterManager: ObservableObject {
         } else {
             timerWordProgress = progress
             isManualScrolling = false
+        }
+    }
+
+    func setPreviewManualScrolling(_ scrolling: Bool, progress: Double = 0) {
+        guard isPreviewMode else { return }
+        if scrolling {
+            previewTimer?.invalidate()
+            previewTimer = nil
+        } else {
+            let mode = Defaults[.teleprompterListeningMode]
+            switch mode {
+            case .wordTracking:
+                previewCharProgress = charOffsetForWordProgress(progress, in: previewWords)
+            case .classic, .silencePaused:
+                previewWordProgress = progress
+                if mode == .silencePaused {
+                    previewCharProgress = charOffsetForWordProgress(progress, in: previewWords)
+                }
+            }
+            startPreviewTimer()
         }
     }
 
@@ -250,6 +322,20 @@ class TeleprompterManager: ObservableObject {
         return min(charCount, words.joined(separator: " ").count)
     }
 
+    private func charOffsetForWordProgress(_ progress: Double, in words: [String]) -> Int {
+        let wordIdx = Int(progress)
+        guard !words.isEmpty else { return 0 }
+        var charCount = 0
+        for i in 0..<min(wordIdx, words.count) {
+            charCount += words[i].count + 1
+        }
+        if wordIdx < words.count {
+            let fraction = progress - Double(wordIdx)
+            charCount += Int(Double(words[wordIdx].count) * fraction)
+        }
+        return min(charCount, words.joined(separator: " ").count)
+    }
+
     private func wordProgressForCharOffset(_ charOffset: Int) -> Double {
         var offset = 0
         for (i, word) in words.enumerated() {
@@ -262,5 +348,128 @@ class TeleprompterManager: ObservableObject {
             offset = end + 1
         }
         return Double(words.count)
+    }
+
+    // MARK: - Preview Mode
+
+    func startPreview() {
+        guard !isActive else { return }
+        isPreviewMode = true
+
+        let lang = TeleprompterPreviewTexts.languageCode(
+            from: Defaults[.teleprompterSpeechLocale]
+        )
+        let text = TeleprompterPreviewTexts.texts[lang]
+            ?? TeleprompterPreviewTexts.texts["en"]!
+        previewWords = splitTeleprompterWords(text)
+        previewCharProgress = 0
+        previewWordProgress = 0
+
+        SharingStateManager.shared.beginInteraction()
+        NotchXViewCoordinator.shared.currentView = .teleprompter
+        NotificationCenter.default.post(name: .teleprompterRequestOpen, object: nil)
+
+        startPreviewTimer()
+    }
+
+    func stopPreview() {
+        guard isPreviewMode else { return }
+        isPreviewMode = false
+
+        previewTimer?.invalidate()
+        previewTimer = nil
+        previewWords = []
+        previewCharProgress = 0
+        previewWordProgress = 0
+
+        SharingStateManager.shared.endInteraction()
+
+        if NotchXViewCoordinator.shared.currentView == .teleprompter {
+            NotchXViewCoordinator.shared.currentView = .home
+        }
+        NotificationCenter.default.post(name: .teleprompterRequestClose, object: nil)
+    }
+
+    private func startPreviewTimer() {
+        guard isPreviewMode else { return }
+        previewTimer?.invalidate()
+
+        let mode = Defaults[.teleprompterListeningMode]
+        let words = previewWords
+        guard !words.isEmpty else { return }
+        let totalChars = words.joined(separator: " ").count
+
+        switch mode {
+        case .wordTracking:
+            var wordIdx = 0
+            var charPos = 0
+            previewTimer = Timer.scheduledTimer(withTimeInterval: 0.8, repeats: true) { [weak self] timer in
+                Task { @MainActor [weak self] in
+                    guard let self, self.isPreviewMode else {
+                        timer.invalidate()
+                        return
+                    }
+                    if wordIdx < words.count {
+                        charPos += words[wordIdx].count + 1
+                        self.previewCharProgress = min(charPos, totalChars)
+                        wordIdx += 1
+                    } else {
+                        timer.invalidate()
+                        self.previewTimer = nil
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) { [weak self] in
+                            guard let self, self.isPreviewMode else { return }
+                            self.previewCharProgress = 0
+                            self.startPreviewTimer()
+                        }
+                    }
+                }
+            }
+
+        case .classic:
+            previewTimer = Timer.scheduledTimer(withTimeInterval: 0.05, repeats: true) { [weak self] timer in
+                Task { @MainActor [weak self] in
+                    guard let self, self.isPreviewMode else {
+                        timer.invalidate()
+                        return
+                    }
+                    let speed = Defaults[.teleprompterScrollSpeed]
+                    self.previewWordProgress += speed * 0.05
+                    if self.previewWordProgress >= Double(words.count) {
+                        timer.invalidate()
+                        self.previewTimer = nil
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) { [weak self] in
+                            guard let self, self.isPreviewMode else { return }
+                            self.previewWordProgress = 0
+                            self.startPreviewTimer()
+                        }
+                    }
+                }
+            }
+
+        case .silencePaused:
+            var wordIdx = 0
+            var charPos = 0
+            previewTimer = Timer.scheduledTimer(withTimeInterval: 0.6, repeats: true) { [weak self] timer in
+                Task { @MainActor [weak self] in
+                    guard let self, self.isPreviewMode else {
+                        timer.invalidate()
+                        return
+                    }
+                    if wordIdx < words.count {
+                        charPos += words[wordIdx].count + 1
+                        self.previewCharProgress = min(charPos, totalChars)
+                        wordIdx += 1
+                    } else {
+                        timer.invalidate()
+                        self.previewTimer = nil
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) { [weak self] in
+                            guard let self, self.isPreviewMode else { return }
+                            self.previewCharProgress = 0
+                            self.startPreviewTimer()
+                        }
+                    }
+                }
+            }
+        }
     }
 }

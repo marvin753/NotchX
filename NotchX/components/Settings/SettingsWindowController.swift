@@ -108,6 +108,11 @@ class SettingsWindowController: NSWindowController {
 
 extension SettingsWindowController: NSWindowDelegate {
     func windowWillClose(_ notification: Notification) {
+        Task { @MainActor in
+            if TeleprompterManager.shared.isPreviewMode {
+                TeleprompterManager.shared.stopPreview()
+            }
+        }
         relinquishFocus()
     }
     
