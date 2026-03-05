@@ -50,22 +50,18 @@ struct NowPlayingSettings: View {
                 Text("Music source")
                     .font(.body)
 
-                NXSegmentedControl(
-                    items: availableMediaControllers.map { controller in
-                        switch controller {
-                        case .nowPlaying:
-                            return NXSegmentItem(label: controller.rawValue, value: controller, content: .icon("music.note"))
-                        case .appleMusic:
-                            return NXSegmentItem(label: controller.rawValue, value: controller, content: .custom(AnyView(AppleMusicBrandIcon())))
-                        case .spotify:
-                            return NXSegmentItem(label: controller.rawValue, value: controller, content: .custom(AnyView(SpotifyBrandIcon())))
-                        case .youtubeMusic:
-                            return NXSegmentItem(label: controller.rawValue, value: controller, content: .custom(AnyView(YouTubeMusicBrandIcon())))
+                HStack(spacing: 8) {
+                    ForEach(availableMediaControllers) { controller in
+                        MediaSourceTileCard(
+                            controllerType: controller,
+                            isSelected: mediaController == controller
+                        ) {
+                            withAnimation(.spring(duration: 0.25)) {
+                                mediaController = controller
+                            }
                         }
-                    },
-                    selection: $mediaController,
-                    showLabels: false
-                )
+                    }
+                }
                 .onChange(of: mediaController) { _, _ in
                     NotificationCenter.default.post(
                         name: Notification.Name.mediaControllerChanged,
@@ -244,50 +240,88 @@ struct NowPlayingSettings: View {
     }
 }
 
-// MARK: - Brand Icons
+// MARK: - Media Source Tile Card
 
-private struct AppleMusicBrandIcon: View {
+private struct MediaSourceTileCard: View {
+    let controllerType: MediaControllerType
+    let isSelected: Bool
+    let onSelect: () -> Void
+
+    private var brandColor: Color {
+        switch controllerType {
+        case .nowPlaying:
+            return Color.effectiveAccent
+        case .appleMusic:
+            return Color(red: 0.98, green: 0.24, blue: 0.35)
+        case .spotify:
+            return Color(red: 0.114, green: 0.725, blue: 0.329)
+        case .youtubeMusic:
+            return Color.red
+        }
+    }
+
+    @ViewBuilder
+    private var iconView: some View {
+        switch controllerType {
+        case .nowPlaying:
+            RoundedRectangle(cornerRadius: 10, style: .continuous)
+                .fill(Color.effectiveAccent)
+                .frame(width: 38, height: 38)
+                .overlay {
+                    Image(systemName: "music.note")
+                        .font(.system(size: 17, weight: .bold))
+                        .foregroundStyle(.white)
+                }
+        case .appleMusic:
+            Image("AppleMusicIcon")
+                .resizable()
+                .aspectRatio(contentMode: .fit)
+                .frame(width: 38, height: 38)
+                .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
+        case .spotify:
+            Image("SpotifyIcon")
+                .resizable()
+                .aspectRatio(contentMode: .fit)
+                .frame(width: 38, height: 38)
+                .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
+        case .youtubeMusic:
+            Image("YouTubeMusicIcon")
+                .resizable()
+                .aspectRatio(contentMode: .fit)
+                .frame(width: 38, height: 38)
+                .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
+        }
+    }
+
     var body: some View {
-        ZStack {
-            RoundedRectangle(cornerRadius: 4, style: .continuous)
-                .fill(
-                    LinearGradient(
-                        colors: [Color(red: 0.98, green: 0.24, blue: 0.35), Color(red: 0.85, green: 0.15, blue: 0.45)],
-                        startPoint: .top,
-                        endPoint: .bottom
+        VStack(spacing: 6) {
+            Button(action: onSelect) {
+                iconView
+                    .frame(maxWidth: .infinity)
+                    .frame(height: 60)
+                    .background(
+                        RoundedRectangle(cornerRadius: 16, style: .continuous)
+                            .fill(brandColor.opacity(isSelected ? 0.20 : 0.08))
                     )
-                )
-            Image(systemName: "music.note")
-                .font(.system(size: 9, weight: .bold))
-                .foregroundStyle(.white)
-        }
-        .frame(width: 16, height: 16)
-    }
-}
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 16, style: .continuous)
+                            .strokeBorder(
+                                isSelected ? Color.effectiveAccent : Color.clear,
+                                lineWidth: 2
+                            )
+                    )
+                    .shadow(color: .black.opacity(0.06), radius: 2, x: 0, y: 1)
+            }
+            .buttonStyle(.plain)
+            .help(controllerType.rawValue)
 
-private struct SpotifyBrandIcon: View {
-    var body: some View {
-        ZStack {
-            Circle()
-                .fill(Color(red: 0.114, green: 0.725, blue: 0.329))
-            Image(systemName: "antenna.radiowaves.left.and.right")
-                .font(.system(size: 7, weight: .bold))
-                .foregroundStyle(.black)
+            Text(controllerType.rawValue)
+                .font(.caption2)
+                .fontWeight(isSelected ? .bold : .medium)
+                .lineLimit(1)
+                .minimumScaleFactor(0.7)
+                .foregroundStyle(isSelected ? Color.primary : Color.secondary)
         }
-        .frame(width: 16, height: 16)
-    }
-}
-
-private struct YouTubeMusicBrandIcon: View {
-    var body: some View {
-        ZStack {
-            RoundedRectangle(cornerRadius: 4, style: .continuous)
-                .fill(Color.red)
-            Image(systemName: "play.fill")
-                .font(.system(size: 7, weight: .bold))
-                .foregroundStyle(.white)
-        }
-        .frame(width: 16, height: 16)
     }
 }
 
