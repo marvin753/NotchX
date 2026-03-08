@@ -12,10 +12,11 @@ struct HUDSettingsPage: View {
 
     @EnvironmentObject var vm: NotchXViewModel
     @Default(.inlineHUD) var inlineHUD
-    @Default(.enableGradient) var enableGradient
+    @Default(.progressBarStyle) var progressBarStyle
     @Default(.optionKeyAction) var optionKeyAction
     @Default(.hudReplacement) var hudReplacement
-    @ObservedObject var coordinator = NotchXViewCoordinator.shared
+    // Removed @ObservedObject coordinator – it was never used but caused re-renders when
+    // sneakPeek changed (volume/brightness at notch), leading to progress bar preview flicker.
     @State private var accessibilityAuthorized = false
 
     var body: some View {
@@ -82,26 +83,26 @@ struct HUDSettingsPage: View {
 
                     NXVisualPreviewPicker(
                         items: [
-                            NXPreviewItem(label: "Hierarchical", value: false) {
-                                MiniBarHierarchical()
-                                    .scaleEffect(2.6)
-                                    .frame(width: 80, height: 50)
-                                    .clipped()
+                            NXPreviewItem(label: "White", value: ProgressBarStyle.white) {
+                                MiniNotchPreview { MiniBarWhite() }
                             },
-                            NXPreviewItem(label: "Gradient", value: true) {
-                                MiniBarGradient()
-                                    .scaleEffect(2.6)
-                                    .frame(width: 80, height: 50)
-                                    .clipped()
+                            NXPreviewItem(label: "Accent", value: ProgressBarStyle.accent) {
+                                MiniNotchPreview { MiniBarAccent() }
+                            },
+                            NXPreviewItem(label: "Glow", value: ProgressBarStyle.glow) {
+                                MiniNotchPreview { MiniBarGlow() }
                             },
                         ],
-                        selection: $enableGradient
+                        selection: $progressBarStyle
                     )
+                    .onChange(of: progressBarStyle) { _, newValue in
+                        if newValue == .glow {
+                            withAnimation {
+                                Defaults[.systemEventIndicatorShadow] = true
+                            }
+                        }
+                    }
                 }
-
-                NXStyledToggle(title: "Enable glowing effect", key: .systemEventIndicatorShadow)
-
-                NXStyledToggle(title: "Tint progress bar with accent color", key: .systemEventIndicatorUseAccent)
             } header: {
                 NXSectionHeader(title: "General")
             }
@@ -143,14 +144,6 @@ struct HUDSettingsPage: View {
                         ],
                         selection: $inlineHUD
                     )
-                    .onChange(of: Defaults[.inlineHUD]) {
-                        if Defaults[.inlineHUD] {
-                            withAnimation {
-                                Defaults[.systemEventIndicatorShadow] = false
-                                Defaults[.enableGradient] = false
-                            }
-                        }
-                    }
                 }
 
                 NXStyledToggle(title: "Show percentage", key: .showClosedNotchHUDPercentage)
@@ -204,35 +197,47 @@ private struct MiniHUDInline: View {
 
 // MARK: - Mini-Preview: Progress Bar Style
 
-private struct MiniBarHierarchical: View {
+private struct MiniNotchPreview<Content: View>: View {
+    let content: Content
+    init(@ViewBuilder content: () -> Content) { self.content = content() }
+    var body: some View {
+        content
+            .scaleEffect(2.6)
+            .shadow(color: .black.opacity(0.5), radius: 4, x: 0, y: 2)
+    }
+}
+
+private struct MiniBarWhite: View {
     var body: some View {
         ZStack(alignment: .leading) {
-            Capsule()
-                .fill(Color.primary.opacity(0.15))
-                .frame(width: 24, height: 5)
-            Capsule()
-                .fill(Color.primary.opacity(0.6))
-                .frame(width: 14, height: 5)
+            Capsule().fill(Color.white.opacity(0.15)).frame(width: 24, height: 5)
+            Capsule().fill(Color.white.opacity(0.9)).frame(width: 14, height: 5)
         }
         .frame(height: 18)
     }
 }
 
-private struct MiniBarGradient: View {
+private struct MiniBarAccent: View {
     var body: some View {
         ZStack(alignment: .leading) {
+            Capsule().fill(Color.white.opacity(0.15)).frame(width: 24, height: 5)
+            Capsule().fill(Color.effectiveAccent).frame(width: 14, height: 5)
+        }
+        .frame(height: 18)
+    }
+}
+
+private struct MiniBarGlow: View {
+    var body: some View {
+        ZStack(alignment: .leading) {
+            Capsule().fill(Color.white.opacity(0.15)).frame(width: 24, height: 5)
             Capsule()
-                .fill(Color.primary.opacity(0.15))
-                .frame(width: 24, height: 5)
-            Capsule()
-                .fill(
-                    LinearGradient(
-                        colors: [Color.effectiveAccent, Color.effectiveAccent.opacity(0.3)],
-                        startPoint: .leading,
-                        endPoint: .trailing
-                    )
-                )
+                .fill(LinearGradient(
+                    colors: [Color.white, Color.white.opacity(0.3)],
+                    startPoint: .leading, endPoint: .trailing
+                ))
                 .frame(width: 14, height: 5)
+                .shadow(color: Color.white.opacity(0.6), radius: 3, x: 1)
         }
         .frame(height: 18)
     }

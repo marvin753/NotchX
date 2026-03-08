@@ -281,6 +281,23 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     func applicationDidFinishLaunching(_ notification: Notification) {
         registerTeleprompterFonts()
 
+        // Migrate legacy gradient/accent toggles → unified ProgressBarStyle
+        let migrationKey = "progressBarStyleMigrated"
+        if !UserDefaults.standard.bool(forKey: migrationKey) {
+            let hadAccent = Defaults[.systemEventIndicatorUseAccent]
+            let hadGradient = Defaults[.enableGradient]
+
+            if hadGradient && hadAccent {
+                Defaults[.progressBarStyle] = .accent
+            } else if hadAccent {
+                Defaults[.progressBarStyle] = .accent
+            } else if hadGradient {
+                Defaults[.progressBarStyle] = .glow
+            }
+
+            UserDefaults.standard.set(true, forKey: migrationKey)
+        }
+
         NotificationCenter.default.addObserver(
             self,
             selector: #selector(screenConfigurationDidChange),

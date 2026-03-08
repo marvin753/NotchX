@@ -74,3 +74,9 @@ enum SliderColorEnum: String, CaseIterable, Defaults.Serializable {
     case albumArt = "Match album art"
     case accent = "Accent color"
 }
+
+enum ProgressBarStyle: String, CaseIterable, Defaults.Serializable {
+    case white   // Solid white fill
+    case accent  // Solid accent color fill
+    case glow    // White gradient + glow shadow
+}
