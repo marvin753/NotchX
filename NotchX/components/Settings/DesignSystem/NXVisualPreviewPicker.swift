@@ -14,7 +14,7 @@ import SwiftUI
 
 /// Describes a single selectable card in `NXVisualPreviewPicker`.
 struct NXPreviewItem<Selection: Hashable>: Identifiable {
-    let id = UUID()
+    var id: Selection { value }
     let label: String
     let value: Selection
     let icon: String?

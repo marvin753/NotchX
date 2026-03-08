@@ -130,19 +130,14 @@ struct HUDSettingsPage: View {
                     NXVisualPreviewPicker(
                         items: [
                             NXPreviewItem(label: "Default", value: false) {
-                                MiniHUDDefault()
-                                    .scaleEffect(2.6)
-                                    .frame(width: 80, height: 50)
-                                    .clipped()
+                                AnimatedHUDDefaultPreview(isDisplayPage: pageTitle == "Display")
                             },
                             NXPreviewItem(label: "Inline", value: true) {
-                                MiniHUDInline()
-                                    .scaleEffect(2.6)
-                                    .frame(width: 80, height: 50)
-                                    .clipped()
+                                AnimatedHUDInlinePreview(isDisplayPage: pageTitle == "Display")
                             },
                         ],
-                        selection: $inlineHUD
+                        selection: $inlineHUD,
+                        cardHeight: 95
                     )
                 }
 
@@ -168,30 +163,6 @@ struct HUDSettingsPage: View {
                 accessibilityAuthorized = granted
             }
         }
-    }
-}
-
-// MARK: - Mini-Preview: HUD Style
-
-private struct MiniHUDDefault: View {
-    var body: some View {
-        HStack(spacing: 3) {
-            Image(systemName: "speaker.wave.2.fill")
-                .font(.system(size: 7, weight: .medium))
-            Capsule()
-                .fill(Color.primary.opacity(0.5))
-                .frame(width: 22, height: 4)
-        }
-        .frame(height: 18)
-    }
-}
-
-private struct MiniHUDInline: View {
-    var body: some View {
-        Capsule()
-            .fill(Color.primary.opacity(0.5))
-            .frame(width: 28, height: 4)
-            .frame(height: 18)
     }
 }
 
