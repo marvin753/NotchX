@@ -1,6 +1,7 @@
 import Foundation
 import Cocoa
 import AsyncXPCConnection
+import ApplicationServices
 
 final class XPCHelperClient: NSObject {
     nonisolated static let shared = XPCHelperClient()
@@ -109,41 +110,33 @@ final class XPCHelperClient: NSObject {
     }
     
     nonisolated func isAccessibilityAuthorized() async -> Bool {
-        do {
-            let service = await MainActor.run {
-                ensureRemoteService()
-            }
-            let result: Bool = try await service.withContinuation { service, continuation in
-                service.isAccessibilityAuthorized { authorized in
-                    continuation.resume(returning: authorized)
-                }
-            }
-            await MainActor.run {
-                notifyAuthorizationChange(result)
-            }
-            return result
-        } catch {
-            return false
+        let result = AXIsProcessTrusted()
+        await MainActor.run {
+            notifyAuthorizationChange(result)
         }
+        return result
     }
     
     nonisolated func ensureAccessibilityAuthorization(promptIfNeeded: Bool) async -> Bool {
-        do {
-            let service = await MainActor.run {
-                ensureRemoteService()
-            }
-            let result: Bool = try await service.withContinuation { service, continuation in
-                service.ensureAccessibilityAuthorization(promptIfNeeded) { authorized in
-                    continuation.resume(returning: authorized)
-                }
-            }
+        if AXIsProcessTrusted() {
             await MainActor.run {
-                notifyAuthorizationChange(result)
+                notifyAuthorizationChange(true)
             }
-            return result
-        } catch {
-            return false
+            return true
         }
+
+        if promptIfNeeded {
+            let options = [kAXTrustedCheckOptionPrompt.takeUnretainedValue() as String: true] as CFDictionary
+            AXIsProcessTrustedWithOptions(options)
+        }
+
+        try? await Task.sleep(for: .seconds(0.5))
+
+        let result = AXIsProcessTrusted()
+        await MainActor.run {
+            notifyAuthorizationChange(result)
+        }
+        return result
     }
     
     // MARK: - Keyboard Brightness

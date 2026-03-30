@@ -120,9 +120,11 @@ class NotchXViewCoordinator: ObservableObject {
             forName: Notification.Name.accessibilityAuthorizationChanged,
             object: nil,
             queue: .main
-        ) { _ in
+        ) { notification in
+            let granted = notification.userInfo?["granted"] as? Bool ?? false
             Task { @MainActor in
-                if Defaults[.hudReplacement] {
+                if granted && Defaults[.hudReplacement] {
+                    XPCHelperClient.shared.stopMonitoringAccessibilityAuthorization()
                     await MediaKeyInterceptor.shared.start(promptIfNeeded: false)
                 }
             }
@@ -134,30 +136,18 @@ class NotchXViewCoordinator: ObservableObject {
                 Task { @MainActor in
                     guard let self = self else { return }
 
-                    // #region agent log
-                    _nxDbg("hudReplacement publisher fired", ["oldValue": change.oldValue, "newValue": change.newValue, "hudEnableTaskExists": self.hudEnableTask != nil], h: "B", loc: "NotchXViewCoordinator.swift:hudReplacement-sink")
-                    // #endregion
-
                     self.hudEnableTask?.cancel()
                     self.hudEnableTask = nil
 
                     if change.newValue {
                         self.hudEnableTask = Task { @MainActor in
                             let granted = await XPCHelperClient.shared.ensureAccessibilityAuthorization(promptIfNeeded: true)
-                            // #region agent log
-                            _nxDbg("hudEnableTask: after ensureAuth", ["granted": granted, "isCancelled": Task.isCancelled], h: "B", loc: "NotchXViewCoordinator.swift:hudEnableTask-afterAuth")
-                            // #endregion
-                            if Task.isCancelled {
-                                // #region agent log
-                                _nxDbg("hudEnableTask: CANCELLED before start()", h: "B", loc: "NotchXViewCoordinator.swift:hudEnableTask-cancelled")
-                                // #endregion
-                                return
-                            }
+                            if Task.isCancelled { return }
 
                             if granted {
                                 await MediaKeyInterceptor.shared.start()
                             } else {
-                                Defaults[.hudReplacement] = false
+                                XPCHelperClient.shared.startMonitoringAccessibilityAuthorization(every: 1.0)
                             }
                         }
                     } else {
@@ -181,15 +171,8 @@ class NotchXViewCoordinator: ObservableObject {
         Task { @MainActor in
             helloAnimationRunning = firstLaunch
 
-            // #region agent log
-            _nxDbg("init startup Task", ["hudReplacement": Defaults[.hudReplacement]], h: "ALL", loc: "NotchXViewCoordinator.swift:init-startup")
-            // #endregion
-
             if Defaults[.hudReplacement] {
                 let authorized = await XPCHelperClient.shared.isAccessibilityAuthorized()
-                // #region agent log
-                _nxDbg("init startup: accessibility result", ["authorized": authorized], h: "ALL", loc: "NotchXViewCoordinator.swift:init-startup-auth")
-                // #endregion
                 if !authorized {
                     Defaults[.hudReplacement] = false
                 } else {
@@ -432,15 +415,9 @@ class NotchXViewCoordinator: ObservableObject {
         if type != .music {
             // close()
             if !Defaults[.hudReplacement] {
-                // #region agent log
-                _nxDbg("toggleSneakPeek BLOCKED: hudReplacement is false", ["type": "\(type)", "status": status, "value": value], h: "C", loc: "NotchXViewCoordinator.swift:toggleSneakPeek-blocked")
-                // #endregion
                 return
             }
         }
-        // #region agent log
-        _nxDbg("toggleSneakPeek executing", ["type": "\(type)", "status": status, "value": value], h: "ALL", loc: "NotchXViewCoordinator.swift:toggleSneakPeek-exec")
-        // #endregion
         Task { @MainActor in
             withAnimation(.smooth) {
                 self.sneakPeek.show = status
