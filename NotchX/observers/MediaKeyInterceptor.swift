@@ -10,6 +10,18 @@ import ApplicationServices
 import Defaults
 import AVFoundation
 
+// #region agent log
+func _nxDbg(_ msg: String, _ data: [String: Any] = [:], h: String = "", loc: String = "") {
+    let p = "/Users/marvinbarsal/Desktop/Gaming/NotchX/.cursor/debug-b6ca29.log"
+    let ts = Int(Date().timeIntervalSince1970 * 1000)
+    var entry: [String: Any] = ["sessionId": "b6ca29", "timestamp": ts, "location": loc, "message": msg, "data": data, "hypothesisId": h]
+    guard let d = try? JSONSerialization.data(withJSONObject: entry), let s = String(data: d, encoding: .utf8) else { return }
+    let line = s + "\n"
+    if let fh = FileHandle(forWritingAtPath: p) { fh.seekToEndOfFile(); fh.write(line.data(using: .utf8)!); fh.closeFile() }
+    else { FileManager.default.createFile(atPath: p, contents: line.data(using: .utf8)) }
+}
+// #endregion
+
 private let kSystemDefinedEventType = CGEventType(rawValue: 14)!
 
 final class MediaKeyInterceptor {
@@ -45,16 +57,30 @@ final class MediaKeyInterceptor {
     // MARK: - Event Tap
     
     func start(promptIfNeeded: Bool = false) async {
-        guard eventTap == nil else { return }
+        // #region agent log
+        _nxDbg("start() called", ["eventTapIsNil": eventTap == nil, "hudReplacement": Defaults[.hudReplacement], "promptIfNeeded": promptIfNeeded], h: "A,D", loc: "MediaKeyInterceptor.swift:start-entry")
+        // #endregion
+        guard eventTap == nil else {
+            // #region agent log
+            _nxDbg("start() EARLY RETURN: eventTap already exists", h: "D", loc: "MediaKeyInterceptor.swift:start-guard-eventTap")
+            // #endregion
+            return
+        }
         
         // Ensure HUD replacement is enabled
         guard Defaults[.hudReplacement] else {
+            // #region agent log
+            _nxDbg("start() EARLY RETURN: hudReplacement is false", h: "C", loc: "MediaKeyInterceptor.swift:start-guard-hudReplacement")
+            // #endregion
             stop()
             return
         }
         
         // Check accessibility authorization
         let authorized = await XPCHelperClient.shared.isAccessibilityAuthorized()
+        // #region agent log
+        _nxDbg("start() accessibility check", ["authorized": authorized, "promptIfNeeded": promptIfNeeded], h: "A", loc: "MediaKeyInterceptor.swift:start-auth-check")
+        // #endregion
         if !authorized {
             if promptIfNeeded {
                 let granted = await ensureAccessibilityAuthorization(promptIfNeeded: true)
@@ -78,16 +104,30 @@ final class MediaKeyInterceptor {
             userInfo: UnsafeMutableRawPointer(Unmanaged.passUnretained(self).toOpaque())
         )
         
+        // #region agent log
+        _nxDbg("start() CGEvent.tapCreate result", ["tapCreated": eventTap != nil], h: "A", loc: "MediaKeyInterceptor.swift:start-tap-created")
+        // #endregion
+        
         if let eventTap {
             runLoopSource = CFMachPortCreateRunLoopSource(kCFAllocatorDefault, eventTap, 0)
             if let runLoopSource {
                 CFRunLoopAddSource(CFRunLoopGetMain(), runLoopSource, .commonModes)
             }
             CGEvent.tapEnable(tap: eventTap, enable: true)
+            // #region agent log
+            _nxDbg("start() tap enabled successfully", h: "A,E", loc: "MediaKeyInterceptor.swift:start-tap-enabled")
+            // #endregion
+        } else {
+            // #region agent log
+            _nxDbg("start() FAILED: CGEvent.tapCreate returned nil!", h: "A", loc: "MediaKeyInterceptor.swift:start-tap-nil")
+            // #endregion
         }
     }
     
     func stop() {
+        // #region agent log
+        _nxDbg("stop() called", ["eventTapExists": eventTap != nil, "runLoopSourceExists": runLoopSource != nil], h: "D", loc: "MediaKeyInterceptor.swift:stop")
+        // #endregion
         if let eventTap {
             CGEvent.tapEnable(tap: eventTap, enable: false)
         }
@@ -197,6 +237,9 @@ final class MediaKeyInterceptor {
     }
 
     private func handleKeyPress(keyType: NXKeyType, option: Bool, shift: Bool, command: Bool) {
+        // #region agent log
+        _nxDbg("handleKeyPress", ["keyType": keyType.rawValue, "option": option, "shift": shift], h: "E", loc: "MediaKeyInterceptor.swift:handleKeyPress")
+        // #endregion
         let stepDivisor: Float = (option && shift) ? 4.0 : 1.0
         
         switch keyType {

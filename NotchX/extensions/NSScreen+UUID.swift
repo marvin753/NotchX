@@ -9,17 +9,30 @@ import AppKit
 import CoreGraphics
 
 extension NSScreen {
-    /// Returns a persistent UUID for this display
-    var displayUUID: String? {
+    /// Returns the CoreGraphics display ID for this screen.
+    var displayID: CGDirectDisplayID? {
         guard let number = deviceDescription[NSDeviceDescriptionKey("NSScreenNumber")] as? NSNumber else {
             return nil
         }
-        let displayID = CGDirectDisplayID(number.uint32Value)
+        return CGDirectDisplayID(number.uint32Value)
+    }
+
+    /// Returns a persistent UUID for this display
+    var displayUUID: String? {
+        guard let displayID else {
+            return nil
+        }
         guard let uuid = CGDisplayCreateUUIDFromDisplayID(displayID) else {
             return nil
         }
         let uuidString = CFUUIDCreateString(nil, uuid.takeRetainedValue()) as String
         return uuidString
+    }
+
+    /// Returns whether the screen is the built-in Mac display.
+    var isBuiltIn: Bool {
+        guard let displayID else { return false }
+        return CGDisplayIsBuiltin(displayID) != 0
     }
     
     /// Find a screen by its UUID
@@ -30,6 +43,14 @@ extension NSScreen {
     /// Get UUID to NSScreen mapping for all screens
     @MainActor static var screensByUUID: [String: NSScreen] {
         return NSScreenUUIDCache.shared.allScreens
+    }
+
+    @MainActor static var builtInScreen: NSScreen? {
+        screens.first(where: \.isBuiltIn)
+    }
+
+    @MainActor static var externalScreens: [NSScreen] {
+        screens.filter { !$0.isBuiltIn }
     }
 }
 

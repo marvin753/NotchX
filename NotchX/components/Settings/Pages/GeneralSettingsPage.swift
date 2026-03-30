@@ -12,12 +12,16 @@ import SwiftUI
 
 struct GeneralSettings: View {
 
+    private struct ScreenOption: Identifiable, Hashable {
+        let uuid: String
+        let name: String
+
+        var id: String { uuid }
+    }
+
     // MARK: - State
 
-    @State private var screens: [(uuid: String, name: String)] = NSScreen.screens.compactMap { screen in
-        guard let uuid = screen.displayUUID else { return nil }
-        return (uuid, screen.localizedName)
-    }
+    @State private var availableScreens: [NSScreen] = NSScreen.screens
 
     // MARK: - Dependencies
 
@@ -51,6 +55,49 @@ struct GeneralSettings: View {
         .navigationTitle("General")
     }
 
+    private var builtInScreenOption: ScreenOption? {
+        guard let screen = availableScreens.first(where: \.isBuiltIn) else { return nil }
+        return screenOption(for: screen)
+    }
+
+    private var externalScreenOptions: [ScreenOption] {
+        let rawOptions = availableScreens.compactMap { screen -> ScreenOption? in
+            guard !screen.isBuiltIn else { return nil }
+            return screenOption(for: screen)
+        }
+
+        let duplicateCounts = Dictionary(grouping: rawOptions, by: \.name).mapValues(\.count)
+        var seenNames: [String: Int] = [:]
+
+        return rawOptions.map { option in
+            guard duplicateCounts[option.name, default: 0] > 1 else { return option }
+
+            let nextIndex = seenNames[option.name, default: 0] + 1
+            seenNames[option.name] = nextIndex
+            return ScreenOption(uuid: option.uuid, name: "\(option.name) (\(nextIndex))")
+        }
+    }
+
+    private var allScreenOptions: [ScreenOption] {
+        availableScreens.compactMap(screenOption(for:))
+    }
+
+    private var shouldShowExternalMonitorPicker: Bool {
+        builtInScreenOption != nil
+            && coordinator.preferredDisplayTarget == .external
+            && externalScreenOptions.count > 1
+    }
+
+    private func screenOption(for screen: NSScreen) -> ScreenOption? {
+        guard let uuid = screen.displayUUID else { return nil }
+        return ScreenOption(uuid: uuid, name: screen.localizedName)
+    }
+
+    private func refreshAvailableScreens() {
+        availableScreens = NSScreen.screens
+        coordinator.normalizePreferredDisplaySelection(postNotification: false)
+    }
+
     // MARK: - System Features
 
     @ViewBuilder
@@ -80,60 +127,10 @@ struct GeneralSettings: View {
                     )
                 }
 
-            VStack(alignment: .leading, spacing: 10) {
-                Text("Preferred display")
-                    .font(.body)
-
-                if screens.isEmpty {
-                    NXVisualPreviewPicker(
-                        items: [
-                            NXPreviewItem(label: "No display detected", value: "" as String, icon: "display.trianglebadge.exclamationmark"),
-                        ],
-                        selection: .constant("")
-                    )
-                    .disabled(true)
-                } else {
-                    NXVisualPreviewPicker(
-                        items: screens.enumerated().map { index, screen in
-                            NXPreviewItem(label: screen.name, value: screen.uuid, icon: index == 0 ? "macbook" : "display")
-                        },
-                        selection: Binding(
-                            get: {
-                                if let uuid = coordinator.preferredScreenUUID,
-                                   screens.contains(where: { $0.uuid == uuid }) {
-                                    return uuid
-                                }
-                                return screens.first?.uuid ?? ""
-                            },
-                            set: { newValue in
-                                coordinator.preferredScreenUUID = newValue
-                            }
-                        )
-                    )
-                }
-            }
-            .onChange(of: NSScreen.screens) {
-                screens = NSScreen.screens.compactMap { screen in
-                    guard let uuid = screen.displayUUID else { return nil }
-                    return (uuid, screen.localizedName)
-                }
-                // Fallback: validate current selection
-                if let current = coordinator.preferredScreenUUID,
-                   !screens.contains(where: { $0.uuid == current }),
-                   let firstUUID = screens.first?.uuid {
-                    coordinator.preferredScreenUUID = firstUUID
-                }
-            }
+            preferredDisplaySelector
+            .onAppear(perform: refreshAvailableScreens)
             .onReceive(NotificationCenter.default.publisher(for: NSApplication.didChangeScreenParametersNotification)) { _ in
-                screens = NSScreen.screens.compactMap { screen in
-                    guard let uuid = screen.displayUUID else { return nil }
-                    return (uuid, screen.localizedName)
-                }
-                if let current = coordinator.preferredScreenUUID,
-                   !screens.contains(where: { $0.uuid == current }),
-                   let firstUUID = screens.first?.uuid {
-                    coordinator.preferredScreenUUID = firstUUID
-                }
+                refreshAvailableScreens()
             }
             .disabled(showOnAllDisplays)
 
@@ -147,6 +144,94 @@ struct GeneralSettings: View {
                 .disabled(showOnAllDisplays)
         } header: {
             NXSectionHeader(title: "System features")
+        }
+    }
+
+    @ViewBuilder
+    private var preferredDisplaySelector: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            Text("Preferred display")
+                .font(.body)
+
+            if builtInScreenOption == nil {
+                fallbackDisplaySelector
+            } else {
+                NXVisualPreviewPicker(
+                    items: [
+                        NXPreviewItem(
+                            label: "MacBook",
+                            value: PreferredDisplayTarget.builtin,
+                            icon: "macbook"
+                        ),
+                        NXPreviewItem(
+                            label: "External monitor",
+                            value: PreferredDisplayTarget.external,
+                            icon: "display",
+                            isEnabled: !externalScreenOptions.isEmpty
+                        ),
+                    ],
+                    selection: Binding(
+                        get: { coordinator.preferredDisplayTarget },
+                        set: { coordinator.setPreferredDisplayTarget($0) }
+                    )
+                )
+
+                if shouldShowExternalMonitorPicker {
+                    Picker(
+                        "External monitor",
+                        selection: Binding(
+                            get: {
+                                coordinator.preferredExternalScreenUUID
+                                    ?? externalScreenOptions.first?.uuid
+                                    ?? ""
+                            },
+                            set: { coordinator.setPreferredExternalScreenUUID($0) }
+                        )
+                    ) {
+                        ForEach(externalScreenOptions) { screen in
+                            Text(screen.name).tag(screen.uuid)
+                        }
+                    }
+                    .pickerStyle(.menu)
+                }
+            }
+        }
+    }
+
+    @ViewBuilder
+    private var fallbackDisplaySelector: some View {
+        if allScreenOptions.isEmpty {
+            NXVisualPreviewPicker(
+                items: [
+                    NXPreviewItem(
+                        label: "No display detected",
+                        value: "" as String,
+                        icon: "display.trianglebadge.exclamationmark"
+                    ),
+                ],
+                selection: .constant("")
+            )
+            .disabled(true)
+        } else {
+            NXVisualPreviewPicker(
+                items: allScreenOptions.enumerated().map { index, screen in
+                    NXPreviewItem(
+                        label: screen.name,
+                        value: screen.uuid,
+                        icon: index == 0 ? "macbook" : "display"
+                    )
+                },
+                selection: Binding(
+                    get: {
+                        if let uuid = coordinator.preferredScreenUUID,
+                           allScreenOptions.contains(where: { $0.uuid == uuid }) {
+                            return uuid
+                        }
+                        return allScreenOptions.first?.uuid ?? ""
+                    },
+                    set: { coordinator.setPreferredFallbackScreenUUID($0) }
+                )
+            )
         }
     }
 
@@ -473,4 +558,3 @@ private struct NotchSizingCustomIcon: View {
     GeneralSettings()
         .environmentObject(NotchXViewModel())
 }
-

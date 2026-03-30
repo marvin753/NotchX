@@ -280,6 +280,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         registerTeleprompterFonts()
+        coordinator.normalizePreferredDisplaySelection(postNotification: false)
 
         // Migrate legacy gradient/accent toggles → unified ProgressBarStyle
         let migrationKey = "progressBarStyleMigrated"
@@ -537,6 +538,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
         if screensChanged {
             DispatchQueue.main.async { [weak self] in
+                self?.coordinator.normalizePreferredDisplaySelection(postNotification: false)
                 self?.cleanupWindows()
                 self?.adjustWindowPosition()
                 self?.setupDragDetectors()
@@ -579,6 +581,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                 }
             }
         } else {
+            coordinator.normalizePreferredDisplaySelection(postNotification: false)
             let selectedScreen: NSScreen
 
             if let preferredScreen = NSScreen.screen(withUUID: coordinator.preferredScreenUUID ?? "") {

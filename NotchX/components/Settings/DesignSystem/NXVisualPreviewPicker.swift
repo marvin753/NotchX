@@ -19,25 +19,29 @@ struct NXPreviewItem<Selection: Hashable>: Identifiable {
     let value: Selection
     let icon: String?
     let preview: AnyView?
+    let isEnabled: Bool
 
     /// Icon-based card (SF Symbol centered at 30pt).
-    init(label: String, value: Selection, icon: String) {
+    init(label: String, value: Selection, icon: String, isEnabled: Bool = true) {
         self.label = label
         self.value = value
         self.icon = icon
         self.preview = nil
+        self.isEnabled = isEnabled
     }
 
     /// Custom preview card (arbitrary SwiftUI content).
     init<Content: View>(
         label: String,
         value: Selection,
+        isEnabled: Bool = true,
         @ViewBuilder preview: () -> Content
     ) {
         self.label = label
         self.value = value
         self.icon = nil
         self.preview = AnyView(preview())
+        self.isEnabled = isEnabled
     }
 
     /// Both icon and custom preview (preview takes precedence in rendering).
@@ -45,12 +49,14 @@ struct NXPreviewItem<Selection: Hashable>: Identifiable {
         label: String,
         value: Selection,
         icon: String,
+        isEnabled: Bool = true,
         @ViewBuilder preview: () -> Content
     ) {
         self.label = label
         self.value = value
         self.icon = icon
         self.preview = AnyView(preview())
+        self.isEnabled = isEnabled
     }
 }
 
@@ -109,17 +115,20 @@ struct NXVisualPreviewPicker<Selection: Hashable & Equatable>: View {
         let isSelected = selection == item.value
 
         Button {
+            guard item.isEnabled else { return }
             withAnimation(.spring(duration: 0.25)) {
                 selection = item.value
             }
         } label: {
             VStack(spacing: 6) {
                 cardContent(for: item, isSelected: isSelected)
-                captionLabel(item.label, isSelected: isSelected)
+                captionLabel(item.label, isSelected: isSelected, isEnabled: item.isEnabled)
             }
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
+        .disabled(!item.isEnabled)
+        .opacity(item.isEnabled ? 1 : 0.75)
         .frame(maxWidth: .infinity)
     }
 
@@ -135,13 +144,13 @@ struct NXVisualPreviewPicker<Selection: Hashable & Equatable>: View {
             } else if let icon = item.icon {
                 Image(systemName: icon)
                     .font(.system(size: iconSize))
-                    .foregroundStyle(isSelected ? Color.effectiveAccent : Color.secondary)
+                    .foregroundStyle(item.isEnabled ? (isSelected ? Color.effectiveAccent : Color.secondary) : Color.secondary.opacity(0.7))
             }
         }
         .frame(maxWidth: .infinity)
         .frame(height: cardHeight)
         .background(
-            isSelected
+            item.isEnabled && isSelected
                 ? Color.effectiveAccent.opacity(0.1)
                 : Color.gray.opacity(0.06)
         )
@@ -149,10 +158,10 @@ struct NXVisualPreviewPicker<Selection: Hashable & Equatable>: View {
         .overlay {
             RoundedRectangle(cornerRadius: 14, style: .continuous)
                 .strokeBorder(
-                    isSelected
+                    item.isEnabled && isSelected
                         ? Color.effectiveAccent
                         : Color.gray.opacity(0.15),
-                    lineWidth: isSelected ? 2 : 1
+                    lineWidth: item.isEnabled && isSelected ? 2 : 1
                 )
         }
         .animation(.spring(duration: 0.25), value: isSelected)
@@ -160,10 +169,10 @@ struct NXVisualPreviewPicker<Selection: Hashable & Equatable>: View {
 
     /// Caption text rendered below the card.
     @ViewBuilder
-    private func captionLabel(_ text: String, isSelected: Bool) -> some View {
+    private func captionLabel(_ text: String, isSelected: Bool, isEnabled: Bool) -> some View {
         Text(text)
             .font(.system(size: 11, weight: isSelected ? .bold : .regular))
-            .foregroundStyle(isSelected ? Color.effectiveAccent : Color.secondary)
+            .foregroundStyle(isEnabled ? (isSelected ? Color.effectiveAccent : Color.secondary) : Color.secondary.opacity(0.7))
             .lineLimit(1)
             .animation(.spring(duration: 0.25), value: isSelected)
     }

@@ -1,2 +1,8 @@
 #!/bin/bash
-xcodebuild -project ~/Desktop/Gaming/NotchX/NotchX.xcodeproj -scheme NotchX -configuration Debug clean build && open ~/Library/Developer/Xcode/DerivedData/NotchX-*/Build/Products/Debug/NotchX.app
+DERIVED_DATA="/tmp/NotchX-DerivedData"
+xcodebuild -project ~/Desktop/Gaming/NotchX/NotchX.xcodeproj \
+  -scheme NotchX \
+  -configuration Debug \
+  -derivedDataPath "$DERIVED_DATA" \
+  clean build \
+&& open "$DERIVED_DATA/Build/Products/Debug/NotchX.app"
