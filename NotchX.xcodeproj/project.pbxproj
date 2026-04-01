@@ -159,6 +159,7 @@
 		FF1A2B3C4D5E6F7A8B9C0D16 /* TeleprompterEditorWindowController.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF1A2B3C4D5E6F7A8B9C0D15 /* TeleprompterEditorWindowController.swift */; };
 		FF1A2B3C4D5E6F7A8B9C0D18 /* TeleprompterEditorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF1A2B3C4D5E6F7A8B9C0D17 /* TeleprompterEditorView.swift */; };
 		FF1A2B3C4D5E6F7A8B9C0D1A /* TeleprompterPreviewTexts.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF1A2B3C4D5E6F7A8B9C0D19 /* TeleprompterPreviewTexts.swift */; };
+		FF1A2B3C4D5E6F7A8B9C0D1C /* TeleprompterSampleText.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF1A2B3C4D5E6F7A8B9C0D1B /* TeleprompterSampleText.swift */; };
 		DD00AABB2F000001CCDD0031 /* NXSegmentedControl.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD00AABB2F000001CCDD0011 /* NXSegmentedControl.swift */; };
 		DD00AABB2F000001CCDD0032 /* NXVisualPreviewPicker.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD00AABB2F000001CCDD0012 /* NXVisualPreviewPicker.swift */; };
 		DD00AABB2F000001CCDD0042 /* AnimatedHUDStylePreviews.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD00AABB2F000001CCDD0022 /* AnimatedHUDStylePreviews.swift */; };
@@ -359,6 +360,7 @@
 		FF1A2B3C4D5E6F7A8B9C0D15 /* TeleprompterEditorWindowController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TeleprompterEditorWindowController.swift; sourceTree = "<group>"; };
 		FF1A2B3C4D5E6F7A8B9C0D17 /* TeleprompterEditorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TeleprompterEditorView.swift; sourceTree = "<group>"; };
 		FF1A2B3C4D5E6F7A8B9C0D19 /* TeleprompterPreviewTexts.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TeleprompterPreviewTexts.swift; sourceTree = "<group>"; };
+		FF1A2B3C4D5E6F7A8B9C0D1B /* TeleprompterSampleText.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TeleprompterSampleText.swift; sourceTree = "<group>"; };
 		DD00AABB2F000001CCDD0011 /* NXSegmentedControl.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NXSegmentedControl.swift; sourceTree = "<group>"; };
 		DD00AABB2F000001CCDD0012 /* NXVisualPreviewPicker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NXVisualPreviewPicker.swift; sourceTree = "<group>"; };
 		DD00AABB2F000001CCDD0022 /* AnimatedHUDStylePreviews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnimatedHUDStylePreviews.swift; sourceTree = "<group>"; };
@@ -887,6 +889,7 @@
 				FF1A2B3C4D5E6F7A8B9C0D15 /* TeleprompterEditorWindowController.swift */,
 				FF1A2B3C4D5E6F7A8B9C0D17 /* TeleprompterEditorView.swift */,
 				FF1A2B3C4D5E6F7A8B9C0D19 /* TeleprompterPreviewTexts.swift */,
+				FF1A2B3C4D5E6F7A8B9C0D1B /* TeleprompterSampleText.swift */,
 			);
 			path = Teleprompter;
 			sourceTree = "<group>";
@@ -1178,6 +1181,7 @@
 				FF1A2B3C4D5E6F7A8B9C0D16 /* TeleprompterEditorWindowController.swift in Sources */,
 				FF1A2B3C4D5E6F7A8B9C0D18 /* TeleprompterEditorView.swift in Sources */,
 				FF1A2B3C4D5E6F7A8B9C0D1A /* TeleprompterPreviewTexts.swift in Sources */,
+				FF1A2B3C4D5E6F7A8B9C0D1C /* TeleprompterSampleText.swift in Sources */,
 				DD00AABB2F000001CCDD0031 /* NXSegmentedControl.swift in Sources */,
 				DD00AABB2F000001CCDD0032 /* NXVisualPreviewPicker.swift in Sources */,
 				DD00AABB2F000001CCDD0042 /* AnimatedHUDStylePreviews.swift in Sources */,

@@ -16,7 +16,7 @@ import Speech
 class TeleprompterManager: ObservableObject {
     static let shared = TeleprompterManager()
 
-    @Published var scriptText: String = ""
+    @Published var scriptText: String = TeleprompterSampleText.localizedText
     @Published var isActive: Bool = false
     @Published var isPaused: Bool = false
     @Published var words: [String] = []
