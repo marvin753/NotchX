@@ -232,8 +232,8 @@ struct ContentView: View {
     private let swipeDirectionLockDistance: CGFloat = 10
     private let swipeDirectionDominanceFactor: CGFloat = 1.5
     private let swipeCancelZone: CGFloat = 15
-    private let swipeFlickMinimumDistance: CGFloat = 20
-    private let swipeVelocityThreshold: CGFloat = 300
+    private let swipeFlickMinimumDistance: CGFloat = 50
+    private let swipeVelocityThreshold: CGFloat = 500
     private let swipeDebounceSeconds: TimeInterval = 0.5
     private let swipeTrackChangeTimeoutSeconds: TimeInterval = 0.3
 
@@ -336,7 +336,7 @@ struct ContentView: View {
         vm.notchState == .closed && isDirectionLocked && lockedDirection == .horizontal
     }
 
-    private let swipeExpandMaxWidth: CGFloat = 26
+    private let swipeExpandMaxWidth: CGFloat = 30
 
     private var swipeExpandEdgeOffset: CGFloat {
         guard vm.notchState == .closed, swipeExpandAmount > 0 else { return 0 }
@@ -799,19 +799,21 @@ struct ContentView: View {
                     let blurRadius: CGFloat = 4 * (1 - progress)
 
                     HStack(spacing: 0) {
+                        let edgeInset = topCornerRadius + 10
                         if rawTranslation > 0 {
                             Spacer(minLength: 0)
                             swipeSkipIcon
                                 .blur(radius: blurRadius)
-                                .frame(width: swipeExpandAmount)
+                                .padding(.trailing, edgeInset)
                         } else {
                             swipeSkipIcon
                                 .blur(radius: blurRadius)
-                                .frame(width: swipeExpandAmount)
+                                .padding(.leading, edgeInset)
                             Spacer(minLength: 0)
                         }
                     }
                 }
+
             }
             .allowsHitTesting(false)
             .clipped()
@@ -914,14 +916,12 @@ struct ContentView: View {
         let progress = min(1, effectiveTravel / denominator)
 
         swipeExpandAmount = swipeExpandMaxWidth * progress
-        arrowOpacity = progress
+        withAnimation(.easeOut(duration: 0.25)) {
+            arrowOpacity = progress
+        }
 
         swipeOffset = 0
         contentOpacity = 1
-
-        // #region agent log
-        agentDebugLogSwipeLayoutSnapshot(runId: "pre-fix")
-        // #endregion
 
         let crossedThreshold = abs(translation) >= swipeSkipThreshold
         if crossedThreshold && !hasTriggeredThresholdHaptic {
@@ -943,7 +943,7 @@ struct ContentView: View {
         swipePhase = .committing
         hasTriggeredThresholdHaptic = false
 
-        withAnimation(.easeIn(duration: 0.12)) {
+        withAnimation(.easeIn(duration: 0.3)) {
             arrowOpacity = 0
             arrowScale = 1
         }
@@ -1084,70 +1084,6 @@ struct ContentView: View {
         guard Defaults[.enableHaptics], Defaults[.swipeHapticFeedback] else { return }
         NSHapticFeedbackManager.defaultPerformer.perform(pattern, performanceTime: .default)
     }
-
-    // #region agent log
-    private func agentDebugLogNDJSON(hypothesisId: String, message: String, data: [String: Any], runId: String) {
-        var payload: [String: Any] = [
-            "sessionId": "eead00",
-            "runId": runId,
-            "hypothesisId": hypothesisId,
-            "location": "ContentView.swift",
-            "message": message,
-            "timestamp": Int(Date().timeIntervalSince1970 * 1000),
-            "data": data
-        ]
-        guard JSONSerialization.isValidJSONObject(payload),
-              let jsonData = try? JSONSerialization.data(withJSONObject: payload),
-              var line = String(data: jsonData, encoding: .utf8) else { return }
-        line.append("\n")
-        let path = "/Users/marvinbarsal/Desktop/Gaming/NotchX/.cursor/debug-eead00.log"
-        let url = URL(fileURLWithPath: path)
-        guard let lineData = line.data(using: .utf8) else { return }
-        if FileManager.default.fileExists(atPath: path) {
-            guard let fh = try? FileHandle(forWritingTo: url) else { return }
-            defer { try? fh.close() }
-            try? fh.seekToEnd()
-            try? fh.write(contentsOf: lineData)
-        } else {
-            try? lineData.write(to: url)
-        }
-    }
-
-    private func agentDebugLogSwipeLayoutSnapshot(runId: String) {
-        let closedBasePad = cornerRadiusInsets.closed.bottom
-        let swipeLeadingExtra: CGFloat = (vm.notchState == .closed && rawTranslation < 0) ? swipeExpandAmount : 0
-        let swipeTrailingExtra: CGFloat = (vm.notchState == .closed && rawTranslation > 0) ? swipeExpandAmount : 0
-        let maxWidthFrame = computedChinWidth + extendedHoverPadding * 2 + swipeExpandAmount
-        let innerWidthAfterPadding = maxWidthFrame - closedBasePad - swipeLeadingExtra - closedBasePad - swipeTrailingExtra
-        let middleRectW = vm.closedNotchSize.width + -cornerRadiusInsets.closed.top
-        let coverSize = max(0, vm.effectiveClosedNotchHeight - 12)
-        let coverDisplay = isHoveringClosedMusicCover ? coverSize + 6 : coverSize
-        let zstackW = max(0, vm.effectiveClosedNotchHeight - 12 + gestureProgress / 2)
-        let hStackSpacing: CGFloat = 8
-        let hstackApproxSum = coverDisplay + 2 + hStackSpacing + middleRectW + hStackSpacing + zstackW
-        var data: [String: Any] = [
-            "rawTranslation": Double(rawTranslation),
-            "swipeExpandAmount": Double(swipeExpandAmount),
-            "swipeExpandEdgeOffset": Double(swipeExpandEdgeOffset),
-            "computedChinWidth": Double(computedChinWidth),
-            "maxWidthFrame": Double(maxWidthFrame),
-            "innerWidthAfterPadding": Double(innerWidthAfterPadding),
-            "swipeLeadingExtra": Double(swipeLeadingExtra),
-            "swipeTrailingExtra": Double(swipeTrailingExtra),
-            "middleRectWidth": Double(middleRectW),
-            "waveColumnWidth": Double(zstackW),
-            "coverDisplay": Double(coverDisplay),
-            "hstackApproxSum": Double(hstackApproxSum),
-            "innerMinusHstack": Double(innerWidthAfterPadding - hstackApproxSum),
-            "gestureProgress": Double(gestureProgress),
-            "closedHoverScale": Double(closedHoverScale),
-            "effectiveClosedNotchHeight": Double(vm.effectiveClosedNotchHeight),
-            "isHoveringWaves": isHoveringWaves,
-            "musicLiveActivityEnabled": coordinator.musicLiveActivityEnabled
-        ]
-        agentDebugLogNDJSON(hypothesisId: "H1-H5", message: "swipe layout snapshot", data: data, runId: runId)
-    }
-    // #endregion
 
     private func resetSwipeState(cancelCommit: Bool = true) {
         if cancelCommit {
@@ -1336,20 +1272,6 @@ struct ContentView: View {
             height: vm.effectiveClosedNotchHeight,
             alignment: .center
         )
-        // #region agent log
-        .onChange(of: isHoveringWaves) { _, new in
-            agentDebugLogNDJSON(
-                hypothesisId: "H6",
-                message: "isHoveringWaves toggled",
-                data: [
-                    "isHoveringWaves": new,
-                    "swipeExpandAmount": Double(swipeExpandAmount),
-                    "rawTranslation": Double(rawTranslation)
-                ],
-                runId: "pre-fix"
-            )
-        }
-        // #endregion
     }
 
     @ViewBuilder
