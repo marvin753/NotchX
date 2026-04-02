@@ -9,9 +9,171 @@
 import AVFoundation
 import Combine
 import Defaults
+import Foundation
 import KeyboardShortcuts
 import SwiftUI
 import SwiftUIIntrospect
+
+private enum SwipeDirection {
+    case undetermined
+    case horizontal
+    case vertical
+}
+
+private enum SkipSwipePhase {
+    case idle
+    case dragging(direction: SwipeDirection)
+    case committing
+    case cancelling
+}
+
+private enum SwipeSkipAction {
+    case next
+    case previous
+
+    var dragSign: CGFloat {
+        switch self {
+        case .next:
+            return 1
+        case .previous:
+            return -1
+        }
+    }
+}
+
+private struct SwipeVelocitySample {
+    let translation: CGFloat
+    let timestamp: Date
+}
+
+private struct TrackSignature: Equatable {
+    let title: String
+    let artist: String
+    let album: String
+    let bundleIdentifier: String?
+}
+
+private struct HorizontalSwipeScrollMonitor: NSViewRepresentable {
+    let onChanged: (CGFloat, CGFloat) -> Void
+    let onEnded: (CGFloat) -> Void
+
+    func makeNSView(context: Context) -> NSView {
+        let view = NSView()
+        context.coordinator.installMonitor(on: view)
+        return view
+    }
+
+    func updateNSView(_ nsView: NSView, context: Context) {}
+
+    static func dismantleNSView(_ nsView: NSView, coordinator: Coordinator) {
+        coordinator.removeMonitor()
+    }
+
+    func makeCoordinator() -> Coordinator {
+        Coordinator(onChanged: onChanged, onEnded: onEnded)
+    }
+
+    @MainActor final class Coordinator: NSObject {
+        private let onChanged: (CGFloat, CGFloat) -> Void
+        private let onEnded: (CGFloat) -> Void
+        private var monitor: Any?
+        private var accumulatedX: CGFloat = 0
+        private var accumulatedY: CGFloat = 0
+        private var active = false
+        private var isPreciseGesture = false
+        private var endTask: Task<Void, Never>?
+        private let activationThreshold: CGFloat = 5
+
+        init(onChanged: @escaping (CGFloat, CGFloat) -> Void, onEnded: @escaping (CGFloat) -> Void) {
+            self.onChanged = onChanged
+            self.onEnded = onEnded
+        }
+
+        func installMonitor(on view: NSView) {
+            removeMonitor()
+            monitor = NSEvent.addLocalMonitorForEvents(matching: [.scrollWheel]) { [weak self, weak view] event in
+                guard let self, event.window === view?.window else { return event }
+                self.handleScroll(event)
+                return event
+            }
+        }
+
+        func removeMonitor() {
+            if let monitor {
+                NSEvent.removeMonitor(monitor)
+                self.monitor = nil
+            }
+            resetState()
+        }
+
+        private func scheduleEndTimeout(timeoutMs: Int) {
+            endTask?.cancel()
+            endTask = Task { @MainActor in
+                try? await Task.sleep(for: .milliseconds(timeoutMs))
+                guard !Task.isCancelled else { return }
+                if active {
+                    onEnded(accumulatedX)
+                }
+                resetState()
+            }
+        }
+
+        private func resetState() {
+            active = false
+            isPreciseGesture = false
+            accumulatedX = 0
+            accumulatedY = 0
+            endTask?.cancel()
+        }
+
+        private func handleScroll(_ event: NSEvent) {
+            // Ignore momentum (inertia after fingers lift)
+            guard event.momentumPhase == [] else { return }
+
+            // New gesture starting — clean up any stale state from a missed .ended
+            if event.phase == .began {
+                if active {
+                    onEnded(0)  // pass 0 to cancel without committing a stale swipe
+                }
+                resetState()
+                isPreciseGesture = event.hasPreciseScrollingDeltas
+                return
+            }
+
+            if event.phase == .ended || event.phase == .cancelled {
+                if active {
+                    onEnded(accumulatedX)
+                }
+                resetState()
+                return
+            }
+
+            let scale: CGFloat = event.hasPreciseScrollingDeltas ? 1 : 8
+            let deltaX = event.scrollingDeltaX * scale
+            let deltaY = event.scrollingDeltaY * scale
+
+            let absDX = abs(deltaX)
+            let absDY = abs(deltaY)
+            let axisDominanceFactor: CGFloat = 1.5
+            guard absDX >= absDY * axisDominanceFactor || (active && absDX > 0.2) else { return }
+
+            accumulatedX += deltaX
+            accumulatedY += deltaY
+
+            if !active {
+                guard abs(accumulatedX) >= activationThreshold else { return }
+                active = true
+            }
+
+            onChanged(accumulatedX, accumulatedY)
+
+            // Only use timeout fallback for non-precise devices (mouse wheel)
+            if !isPreciseGesture {
+                scheduleEndTimeout(timeoutMs: 300)
+            }
+        }
+    }
+}
 
 @MainActor
 struct ContentView: View {
@@ -34,6 +196,23 @@ struct ContentView: View {
     @State private var anyDropDebounceTask: Task<Void, Never>?
     @State private var isNotchLocked: Bool = false
 
+    @State private var swipePhase: SkipSwipePhase = .idle
+    @State private var swipeOffset: CGFloat = 0
+    @State private var rawTranslation: CGFloat = 0
+    @State private var hasTriggeredThresholdHaptic: Bool = false
+    @State private var isDirectionLocked: Bool = false
+    @State private var lockedDirection: SwipeDirection = .undetermined
+    @State private var arrowOpacity: CGFloat = 0
+    @State private var arrowScale: CGFloat = 1.0
+    @State private var contentOpacity: CGFloat = 1.0
+    @State private var lastSuccessfulSwipeAt: Date = .distantPast
+    @State private var lastVelocitySample: SwipeVelocitySample?
+    @State private var swipeVelocity: CGFloat = 0
+    @State private var swipeShakeOffset: CGFloat = 0
+    @State private var blankNotchFlashOpacity: CGFloat = 0
+    @State private var swipeExpandAmount: CGFloat = 0
+    @State private var swipeCommitTask: Task<Void, Never>?
+
     @State private var gestureProgress: CGFloat = .zero
 
     @State private var haptics: Bool = false
@@ -50,6 +229,13 @@ struct ContentView: View {
 
     private let extendedHoverPadding: CGFloat = 30
     private let zeroHeightHoverPadding: CGFloat = 10
+    private let swipeDirectionLockDistance: CGFloat = 10
+    private let swipeDirectionDominanceFactor: CGFloat = 1.5
+    private let swipeCancelZone: CGFloat = 15
+    private let swipeFlickMinimumDistance: CGFloat = 20
+    private let swipeVelocityThreshold: CGFloat = 300
+    private let swipeDebounceSeconds: TimeInterval = 0.5
+    private let swipeTrackChangeTimeoutSeconds: TimeInterval = 0.3
 
     private var topCornerRadius: CGFloat {
        ((vm.notchState == .open) && Defaults[.cornerRadiusScaling])
@@ -98,7 +284,11 @@ struct ContentView: View {
     private var computedChinWidth: CGFloat {
         var chinWidth: CGFloat = vm.closedNotchSize.width
 
-        if coordinator.expandingView.type == .battery && coordinator.expandingView.show
+        if coordinator.expandingView.type == .bluetooth && coordinator.expandingView.show
+            && vm.notchState == .closed && Defaults[.showBluetoothNotifications]
+        {
+            chinWidth = 640
+        } else if coordinator.expandingView.type == .battery && coordinator.expandingView.show
             && vm.notchState == .closed && Defaults[.showPowerStatusNotifications]
         {
             chinWidth = 640
@@ -118,6 +308,57 @@ struct ContentView: View {
         vm.notchState == .closed && !isNotchTransitioning ? closedHoverScale : 1.0
     }
 
+    private var reduceMotionEnabled: Bool {
+        NSWorkspace.shared.accessibilityDisplayShouldReduceMotion
+    }
+
+    private var swipeSkipThreshold: CGFloat {
+        Defaults[.swipeSensitivity].skipThreshold
+    }
+
+    private var swipeVisualMaxOffset: CGFloat {
+        reduceMotionEnabled ? 20 : 60
+    }
+
+    private var isSwipeMediaSessionActive: Bool {
+        musicManager.isPlaying || !musicManager.isPlayerIdle
+    }
+
+    private var isSwipeDebounced: Bool {
+        Date().timeIntervalSince(lastSuccessfulSwipeAt) < swipeDebounceSeconds
+    }
+
+    private var isBlankNotchSwipeMode: Bool {
+        vm.notchState == .closed && isSwipeMediaSessionActive && !coordinator.musicLiveActivityEnabled
+    }
+
+    private var shouldSuppressClosedHoverFromSwipe: Bool {
+        vm.notchState == .closed && isDirectionLocked && lockedDirection == .horizontal
+    }
+
+    private let swipeExpandMaxWidth: CGFloat = 26
+
+    private var swipeExpandEdgeOffset: CGFloat {
+        guard vm.notchState == .closed, swipeExpandAmount > 0 else { return 0 }
+        return rawTranslation > 0 ? swipeExpandAmount / 2 : -swipeExpandAmount / 2
+    }
+
+    private var swipeContentOffset: CGFloat {
+        guard vm.notchState == .closed else { return 0 }
+        if isBlankNotchSwipeMode {
+            return swipeShakeOffset
+        }
+        return swipeOffset + swipeShakeOffset
+    }
+
+    private var swipeContentOpacity: CGFloat {
+        guard vm.notchState == .closed else { return 1 }
+        if isBlankNotchSwipeMode {
+            return 1
+        }
+        return contentOpacity
+    }
+
     var body: some View {
         // Calculate scale based on gesture progress only
         let gestureScale: CGFloat = {
@@ -129,16 +370,28 @@ struct ContentView: View {
         
         ZStack(alignment: .top) {
             VStack(spacing: 0) {
+                let closedBasePad = cornerRadiusInsets.closed.bottom
+                let swipeLeadingExtra: CGFloat = (vm.notchState == .closed && rawTranslation < 0) ? swipeExpandAmount : 0
+                let swipeTrailingExtra: CGFloat = (vm.notchState == .closed && rawTranslation > 0) ? swipeExpandAmount : 0
+
                 let mainLayout = NotchLayout()
                     .frame(alignment: .top)
                     .padding(
-                        .horizontal,
+                        .leading,
                         vm.notchState == .open
                         ? Defaults[.cornerRadiusScaling]
                         ? (cornerRadiusInsets.opened.top) : (cornerRadiusInsets.opened.bottom)
-                        : cornerRadiusInsets.closed.bottom
+                        : closedBasePad + swipeLeadingExtra
+                    )
+                    .padding(
+                        .trailing,
+                        vm.notchState == .open
+                        ? Defaults[.cornerRadiusScaling]
+                        ? (cornerRadiusInsets.opened.top) : (cornerRadiusInsets.opened.bottom)
+                        : closedBasePad + swipeTrailingExtra
                     )
                     .padding([.horizontal, .bottom], vm.notchState == .open ? 12 : 0)
+                    .overlay { swipeFeedbackOverlay }
                     .background(.black)
                     .clipShape(currentNotchShape)
                     .overlay(alignment: .top) {
@@ -168,9 +421,10 @@ struct ContentView: View {
                     .frame(
                         maxWidth: vm.notchState == .open
                             ? .infinity
-                            : computedChinWidth + extendedHoverPadding * 2,
+                            : computedChinWidth + extendedHoverPadding * 2 + swipeExpandAmount,
                         alignment: .center
                     )
+                    .offset(x: swipeExpandEdgeOffset)
                     .conditionalModifier(true) { view in
                         let openAnimation = Animation.spring(response: 0.42, dampingFraction: 0.8, blendDuration: 0)
                         let closeAnimation = Animation.spring(response: 0.45, dampingFraction: 1.0, blendDuration: 0)
@@ -195,14 +449,26 @@ struct ContentView: View {
                                 handleUpGesture(translation: translation, phase: phase)
                             }
                     }
+                    .simultaneousGesture(horizontalSwipeGesture)
+                    .background(
+                        HorizontalSwipeScrollMonitor(
+                            onChanged: { translationX, translationY in
+                                processSwipeChanged(translationX: translationX, translationY: translationY)
+                            },
+                            onEnded: { translationX in
+                                processSwipeEnded(translationX: translationX, velocity: swipeVelocity)
+                            }
+                        )
+                        .frame(width: 0, height: 0)
+                    )
                     .onReceive(NotificationCenter.default.publisher(for: .sharingDidFinish)) { _ in
-                        if vm.notchState == .open && !isHovering && !vm.isBatteryPopoverActive && !isNotchLocked {
+                        if vm.notchState == .open && !isHovering && !vm.isBatteryPopoverActive && !vm.isBluetoothPopoverActive && !isNotchLocked {
                             hoverTask?.cancel()
                             hoverTask = Task {
                                 try? await Task.sleep(for: .milliseconds(100))
                                 guard !Task.isCancelled else { return }
                                 await MainActor.run {
-                                    if self.vm.notchState == .open && !self.isHovering && !self.vm.isBatteryPopoverActive && !SharingStateManager.shared.preventNotchClose && !self.isNotchLocked {
+                                    if self.vm.notchState == .open && !self.isHovering && !self.vm.isBatteryPopoverActive && !self.vm.isBluetoothPopoverActive && !SharingStateManager.shared.preventNotchClose && !self.isNotchLocked {
                                         self.closeNotch()
                                     }
                                 }
@@ -212,6 +478,7 @@ struct ContentView: View {
                     .onChange(of: vm.notchState) { _, newState in
                         scheduleNotchTransitionWindow(for: newState)
                         resetClosedHoverScaleImmediately()
+                        resetSwipeState()
 
                         if newState == .closed {
                             isNotchLocked = false
@@ -247,6 +514,20 @@ struct ContentView: View {
                                 guard !Task.isCancelled else { return }
                                 await MainActor.run {
                                     if !self.vm.isBatteryPopoverActive && !self.isHovering && self.vm.notchState == .open && !SharingStateManager.shared.preventNotchClose && !self.isNotchLocked {
+                                        self.closeNotch()
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    .onChange(of: vm.isBluetoothPopoverActive) {
+                        if !vm.isBluetoothPopoverActive && !isHovering && vm.notchState == .open && !SharingStateManager.shared.preventNotchClose && !isNotchLocked {
+                            hoverTask?.cancel()
+                            hoverTask = Task {
+                                try? await Task.sleep(for: .milliseconds(100))
+                                guard !Task.isCancelled else { return }
+                                await MainActor.run {
+                                    if !self.vm.isBluetoothPopoverActive && !self.isHovering && self.vm.notchState == .open && !SharingStateManager.shared.preventNotchClose && !self.isNotchLocked {
                                         self.closeNotch()
                                     }
                                 }
@@ -331,7 +612,11 @@ struct ContentView: View {
                     .padding(.top, 40)
                     Spacer()
                 } else {
-                    if coordinator.expandingView.type == .battery && coordinator.expandingView.show
+                    if coordinator.expandingView.type == .bluetooth && coordinator.expandingView.show
+                        && vm.notchState == .closed && Defaults[.showBluetoothNotifications]
+                    {
+                        BluetoothConnectionNotification()
+                    } else if coordinator.expandingView.type == .battery && coordinator.expandingView.show
                         && vm.notchState == .closed && Defaults[.showPowerStatusNotifications]
                     {
                         HStack(spacing: 0) {
@@ -482,7 +767,416 @@ struct ContentView: View {
                 .opacity(gestureProgress != 0 ? 1.0 - min(abs(gestureProgress) * 0.1, 0.3) : 1.0)
             }
         }
+        .offset(x: swipeContentOffset)
+        .opacity(swipeContentOpacity)
         .onDrop(of: [.fileURL, .url, .utf8PlainText, .plainText, .data], delegate: GeneralDropTargetDelegate(isTargeted: $vm.generalDropTargeting))
+    }
+
+    // MARK: - Swipe to Skip
+
+    private var horizontalSwipeGesture: some Gesture {
+        DragGesture(minimumDistance: 5)
+            .onChanged { value in
+                handleHorizontalSwipeChanged(value)
+            }
+            .onEnded { value in
+                handleHorizontalSwipeEnded(value)
+            }
+    }
+
+    @ViewBuilder
+    private var swipeFeedbackOverlay: some View {
+        if vm.notchState == .closed {
+            ZStack {
+                if blankNotchFlashOpacity > 0 {
+                    Color.white
+                        .opacity(blankNotchFlashOpacity)
+                        .blendMode(.screen)
+                }
+
+                if swipeExpandAmount > 0, isDirectionLocked, lockedDirection == .horizontal {
+                    let progress = min(1, arrowOpacity)
+                    let blurRadius: CGFloat = 4 * (1 - progress)
+
+                    HStack(spacing: 0) {
+                        if rawTranslation > 0 {
+                            Spacer(minLength: 0)
+                            swipeSkipIcon
+                                .blur(radius: blurRadius)
+                                .frame(width: swipeExpandAmount)
+                        } else {
+                            swipeSkipIcon
+                                .blur(radius: blurRadius)
+                                .frame(width: swipeExpandAmount)
+                            Spacer(minLength: 0)
+                        }
+                    }
+                }
+            }
+            .allowsHitTesting(false)
+            .clipped()
+        }
+    }
+
+    private var swipeSkipIcon: some View {
+        Image(systemName: rawTranslation > 0 ? "forward.end.fill" : "backward.end.fill")
+            .font(.system(size: 11, weight: .medium))
+            .foregroundStyle(.white)
+            .opacity(arrowOpacity)
+            .scaleEffect(arrowScale)
+    }
+
+    private func handleHorizontalSwipeChanged(_ value: DragGesture.Value) {
+        processSwipeChanged(translationX: value.translation.width, translationY: value.translation.height)
+    }
+
+    private func handleHorizontalSwipeEnded(_ value: DragGesture.Value) {
+        let translation = rawTranslation == 0 ? value.translation.width : rawTranslation
+        let velocity: CGFloat
+        if abs(swipeVelocity) > 0 {
+            velocity = swipeVelocity
+        } else {
+            velocity = (value.predictedEndTranslation.width - value.translation.width) / 0.1
+        }
+        processSwipeEnded(translationX: translation, velocity: velocity)
+    }
+
+    private func processSwipeChanged(translationX: CGFloat, translationY: CGFloat) {
+        guard Defaults[.enableSwipeToSkip] else { return }
+        guard vm.notchState == .closed else { return }
+        guard vm.effectiveClosedNotchHeight > 0, !vm.hideOnClosed else { return }
+        guard !isNotchTransitioning else { return }
+        guard isSwipeMediaSessionActive else { return }
+        guard !isSwipeDebounced else { return }
+        if case .committing = swipePhase { return }
+        if case .cancelling = swipePhase { return }
+
+        if case .idle = swipePhase {
+            swipePhase = .dragging(direction: .undetermined)
+            swipeVelocity = 0
+            lastVelocitySample = nil
+        }
+
+        updateSwipeVelocitySample(translationWidth: translationX)
+
+        if !isDirectionLocked {
+            let absX = abs(translationX)
+            let absY = abs(translationY)
+            let maxDelta = max(absX, absY)
+            guard maxDelta >= swipeDirectionLockDistance else { return }
+
+            isDirectionLocked = true
+            if absX > absY * swipeDirectionDominanceFactor {
+                lockedDirection = .horizontal
+                swipePhase = .dragging(direction: .horizontal)
+            } else {
+                lockedDirection = .vertical
+                swipePhase = .dragging(direction: .vertical)
+                return
+            }
+        }
+
+        guard lockedDirection == .horizontal else { return }
+        updateSwipeVisuals(for: translationX)
+    }
+
+    private func processSwipeEnded(translationX: CGFloat, velocity: CGFloat) {
+        defer {
+            lastVelocitySample = nil
+            swipeVelocity = 0
+        }
+
+        guard Defaults[.enableSwipeToSkip], vm.notchState == .closed, vm.effectiveClosedNotchHeight > 0, !vm.hideOnClosed else {
+            resetSwipeState(cancelCommit: true)
+            return
+        }
+        guard isDirectionLocked, lockedDirection == .horizontal else {
+            resetSwipeState(cancelCommit: false)
+            return
+        }
+
+        let shouldCommit =
+            abs(translationX) >= swipeSkipThreshold
+            || (abs(velocity) > swipeVelocityThreshold && abs(translationX) > swipeFlickMinimumDistance)
+
+        if shouldCommit {
+            startSwipeCommit(for: translationX > 0 ? .next : .previous)
+        } else {
+            startSwipeCancel()
+        }
+    }
+
+    private func updateSwipeVisuals(for translation: CGFloat) {
+        rawTranslation = translation
+
+        let effectiveTravel = max(0, abs(translation) - swipeCancelZone)
+        let denominator = max(1, swipeSkipThreshold - swipeCancelZone)
+        let progress = min(1, effectiveTravel / denominator)
+
+        swipeExpandAmount = swipeExpandMaxWidth * progress
+        arrowOpacity = progress
+
+        swipeOffset = 0
+        contentOpacity = 1
+
+        // #region agent log
+        agentDebugLogSwipeLayoutSnapshot(runId: "pre-fix")
+        // #endregion
+
+        let crossedThreshold = abs(translation) >= swipeSkipThreshold
+        if crossedThreshold && !hasTriggeredThresholdHaptic {
+            hasTriggeredThresholdHaptic = true
+            performSwipeHaptic(.alignment)
+            withAnimation(.easeOut(duration: 0.12)) {
+                arrowScale = 1.25
+            }
+        } else if !crossedThreshold && hasTriggeredThresholdHaptic {
+            hasTriggeredThresholdHaptic = false
+            withAnimation(.easeOut(duration: 0.12)) {
+                arrowScale = 1.0
+            }
+        }
+    }
+
+    private func startSwipeCommit(for action: SwipeSkipAction) {
+        swipeCommitTask?.cancel()
+        swipePhase = .committing
+        hasTriggeredThresholdHaptic = false
+
+        withAnimation(.easeIn(duration: 0.12)) {
+            arrowOpacity = 0
+            arrowScale = 1
+        }
+
+        let previousTrack = currentTrackSignature()
+        swipeCommitTask = Task { @MainActor in
+            try? await Task.sleep(for: .milliseconds(100))
+            guard !Task.isCancelled else { return }
+
+            performSwipeAction(action)
+
+            let changed = await waitForTrackChange(from: previousTrack)
+            guard !Task.isCancelled else { return }
+
+            if changed {
+                performSwipeHaptic(.generic)
+            } else {
+                performSwipeHaptic(.generic)
+                if !reduceMotionEnabled {
+                    await runSwipeShake()
+                }
+            }
+
+            let collapseAnimation: Animation = reduceMotionEnabled
+                ? .easeInOut(duration: 0.2)
+                : .spring(response: 0.3, dampingFraction: 0.8)
+
+            withAnimation(collapseAnimation) {
+                swipeExpandAmount = 0
+            }
+            try? await Task.sleep(for: .milliseconds(250))
+
+            isDirectionLocked = false
+            lockedDirection = .undetermined
+            if changed {
+                lastSuccessfulSwipeAt = Date()
+            }
+            resetSwipeState(cancelCommit: false)
+        }
+    }
+
+    private func startSwipeCancel() {
+        swipePhase = .cancelling
+        isDirectionLocked = false
+        lockedDirection = .undetermined
+        hasTriggeredThresholdHaptic = false
+
+        let animation: Animation = reduceMotionEnabled
+            ? .easeInOut(duration: 0.2)
+            : .spring(response: 0.3, dampingFraction: 0.7)
+
+        withAnimation(animation) {
+            swipeExpandAmount = 0
+            swipeOffset = 0
+            contentOpacity = 1
+            arrowOpacity = 0
+            arrowScale = 1
+        }
+
+        Task { @MainActor in
+            let delayMs = reduceMotionEnabled ? 220 : 300
+            try? await Task.sleep(for: .milliseconds(delayMs))
+            resetSwipeState(cancelCommit: false)
+        }
+    }
+
+    private func runSwipeShake() async {
+        let values: [CGFloat] = [3, -3, 3, -3, 0]
+        for value in values {
+            withAnimation(.easeInOut(duration: 0.03)) {
+                swipeShakeOffset = value
+            }
+            try? await Task.sleep(for: .milliseconds(30))
+        }
+    }
+
+    private func runBlankNotchFlash() {
+        withAnimation(.easeOut(duration: 0.1)) {
+            blankNotchFlashOpacity = 0.15
+        }
+        Task { @MainActor in
+            try? await Task.sleep(for: .milliseconds(100))
+            withAnimation(.easeOut(duration: 0.1)) {
+                blankNotchFlashOpacity = 0
+            }
+        }
+    }
+
+    private func performSwipeAction(_ action: SwipeSkipAction) {
+        switch action {
+        case .next:
+            MusicManager.shared.nextTrack()
+        case .previous:
+            MusicManager.shared.previousTrack()
+        }
+    }
+
+    private func currentTrackSignature() -> TrackSignature {
+        TrackSignature(
+            title: musicManager.songTitle,
+            artist: musicManager.artistName,
+            album: musicManager.album,
+            bundleIdentifier: musicManager.bundleIdentifier
+        )
+    }
+
+    private func waitForTrackChange(from previous: TrackSignature) async -> Bool {
+        let start = Date()
+        while Date().timeIntervalSince(start) < swipeTrackChangeTimeoutSeconds {
+            if currentTrackSignature() != previous {
+                return true
+            }
+            try? await Task.sleep(for: .milliseconds(50))
+        }
+        return currentTrackSignature() != previous
+    }
+
+    private func updateSwipeVelocitySample(translationWidth: CGFloat) {
+        let now = Date()
+        if let previous = lastVelocitySample {
+            let deltaTime = now.timeIntervalSince(previous.timestamp)
+            if deltaTime > 0 {
+                swipeVelocity = (translationWidth - previous.translation) / deltaTime
+            }
+        }
+        lastVelocitySample = SwipeVelocitySample(translation: translationWidth, timestamp: now)
+    }
+
+    private func dampedSwipeOffset(_ translation: CGFloat) -> CGFloat {
+        let maxOffset = swipeVisualMaxOffset
+        let sign: CGFloat = translation >= 0 ? 1 : -1
+        let absTranslation = abs(translation)
+        let damped = maxOffset * (1 - exp(-absTranslation / maxOffset))
+        return sign * damped
+    }
+
+    private func performSwipeHaptic(_ pattern: NSHapticFeedbackManager.FeedbackPattern) {
+        guard Defaults[.enableHaptics], Defaults[.swipeHapticFeedback] else { return }
+        NSHapticFeedbackManager.defaultPerformer.perform(pattern, performanceTime: .default)
+    }
+
+    // #region agent log
+    private func agentDebugLogNDJSON(hypothesisId: String, message: String, data: [String: Any], runId: String) {
+        var payload: [String: Any] = [
+            "sessionId": "eead00",
+            "runId": runId,
+            "hypothesisId": hypothesisId,
+            "location": "ContentView.swift",
+            "message": message,
+            "timestamp": Int(Date().timeIntervalSince1970 * 1000),
+            "data": data
+        ]
+        guard JSONSerialization.isValidJSONObject(payload),
+              let jsonData = try? JSONSerialization.data(withJSONObject: payload),
+              var line = String(data: jsonData, encoding: .utf8) else { return }
+        line.append("\n")
+        let path = "/Users/marvinbarsal/Desktop/Gaming/NotchX/.cursor/debug-eead00.log"
+        let url = URL(fileURLWithPath: path)
+        guard let lineData = line.data(using: .utf8) else { return }
+        if FileManager.default.fileExists(atPath: path) {
+            guard let fh = try? FileHandle(forWritingTo: url) else { return }
+            defer { try? fh.close() }
+            try? fh.seekToEnd()
+            try? fh.write(contentsOf: lineData)
+        } else {
+            try? lineData.write(to: url)
+        }
+    }
+
+    private func agentDebugLogSwipeLayoutSnapshot(runId: String) {
+        let closedBasePad = cornerRadiusInsets.closed.bottom
+        let swipeLeadingExtra: CGFloat = (vm.notchState == .closed && rawTranslation < 0) ? swipeExpandAmount : 0
+        let swipeTrailingExtra: CGFloat = (vm.notchState == .closed && rawTranslation > 0) ? swipeExpandAmount : 0
+        let maxWidthFrame = computedChinWidth + extendedHoverPadding * 2 + swipeExpandAmount
+        let innerWidthAfterPadding = maxWidthFrame - closedBasePad - swipeLeadingExtra - closedBasePad - swipeTrailingExtra
+        let middleRectW = vm.closedNotchSize.width + -cornerRadiusInsets.closed.top
+        let coverSize = max(0, vm.effectiveClosedNotchHeight - 12)
+        let coverDisplay = isHoveringClosedMusicCover ? coverSize + 6 : coverSize
+        let zstackW = max(0, vm.effectiveClosedNotchHeight - 12 + gestureProgress / 2)
+        let hStackSpacing: CGFloat = 8
+        let hstackApproxSum = coverDisplay + 2 + hStackSpacing + middleRectW + hStackSpacing + zstackW
+        var data: [String: Any] = [
+            "rawTranslation": Double(rawTranslation),
+            "swipeExpandAmount": Double(swipeExpandAmount),
+            "swipeExpandEdgeOffset": Double(swipeExpandEdgeOffset),
+            "computedChinWidth": Double(computedChinWidth),
+            "maxWidthFrame": Double(maxWidthFrame),
+            "innerWidthAfterPadding": Double(innerWidthAfterPadding),
+            "swipeLeadingExtra": Double(swipeLeadingExtra),
+            "swipeTrailingExtra": Double(swipeTrailingExtra),
+            "middleRectWidth": Double(middleRectW),
+            "waveColumnWidth": Double(zstackW),
+            "coverDisplay": Double(coverDisplay),
+            "hstackApproxSum": Double(hstackApproxSum),
+            "innerMinusHstack": Double(innerWidthAfterPadding - hstackApproxSum),
+            "gestureProgress": Double(gestureProgress),
+            "closedHoverScale": Double(closedHoverScale),
+            "effectiveClosedNotchHeight": Double(vm.effectiveClosedNotchHeight),
+            "isHoveringWaves": isHoveringWaves,
+            "musicLiveActivityEnabled": coordinator.musicLiveActivityEnabled
+        ]
+        agentDebugLogNDJSON(hypothesisId: "H1-H5", message: "swipe layout snapshot", data: data, runId: runId)
+    }
+    // #endregion
+
+    private func resetSwipeState(cancelCommit: Bool = true) {
+        if cancelCommit {
+            swipeCommitTask?.cancel()
+        }
+        swipeCommitTask = nil
+
+        let wasHorizontalSwipe = lockedDirection == .horizontal
+
+        swipePhase = .idle
+        swipeOffset = 0
+        rawTranslation = 0
+        hasTriggeredThresholdHaptic = false
+        isDirectionLocked = false
+        lockedDirection = .undetermined
+        arrowOpacity = 0
+        arrowScale = 1
+        contentOpacity = 1
+        swipeExpandAmount = 0
+        lastVelocitySample = nil
+        swipeVelocity = 0
+        swipeShakeOffset = 0
+        blankNotchFlashOpacity = 0
+
+        if wasHorizontalSwipe && vm.notchState == .closed {
+            withAnimation(closedHoverAnimation) {
+                closedHoverScale = 1.0
+            }
+        }
     }
 
     @ViewBuilder
@@ -642,6 +1336,20 @@ struct ContentView: View {
             height: vm.effectiveClosedNotchHeight,
             alignment: .center
         )
+        // #region agent log
+        .onChange(of: isHoveringWaves) { _, new in
+            agentDebugLogNDJSON(
+                hypothesisId: "H6",
+                message: "isHoveringWaves toggled",
+                data: [
+                    "isHoveringWaves": new,
+                    "swipeExpandAmount": Double(swipeExpandAmount),
+                    "rawTranslation": Double(rawTranslation)
+                ],
+                runId: "pre-fix"
+            )
+        }
+        // #endregion
     }
 
     @ViewBuilder
@@ -717,7 +1425,11 @@ struct ContentView: View {
     private func handleHover(_ hovering: Bool) {
         if coordinator.firstLaunch { return }
         hoverTask?.cancel()
-        
+
+        if shouldSuppressClosedHoverFromSwipe {
+            return
+        }
+
         if hovering {
             withAnimation(animationSpring) {
                 isHovering = true
@@ -750,7 +1462,7 @@ struct ContentView: View {
                         self.resetClosedHoverScaleImmediately()
                     }
 
-                    if self.vm.notchState == .open && !self.vm.isBatteryPopoverActive && !SharingStateManager.shared.preventNotchClose && !self.isNotchLocked {
+                    if self.vm.notchState == .open && !self.vm.isBatteryPopoverActive && !self.vm.isBluetoothPopoverActive && !SharingStateManager.shared.preventNotchClose && !self.isNotchLocked {
                         self.closeNotch()
                     }
                 }
@@ -762,6 +1474,9 @@ struct ContentView: View {
 
     private func handleDownGesture(translation: CGFloat, phase: NSEvent.Phase) {
         guard vm.notchState == .closed else { return }
+        guard !shouldSuppressClosedHoverFromSwipe else { return }
+        if case .committing = swipePhase { return }
+        if case .cancelling = swipePhase { return }
 
         if phase == .ended {
             withAnimation(animationSpring) { gestureProgress = .zero }

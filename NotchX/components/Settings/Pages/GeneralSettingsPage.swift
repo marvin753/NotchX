@@ -37,6 +37,8 @@ struct GeneralSettings: View {
     @Default(.notchHeightMode) var notchHeightMode
     @Default(.showOnAllDisplays) var showOnAllDisplays
     @Default(.automaticallySwitchDisplay) var automaticallySwitchDisplay
+    @Default(.enableSwipeToSkip) var enableSwipeToSkip
+    @Default(.swipeSensitivity) var swipeSensitivity
 
     // MARK: - Body
 
@@ -363,17 +365,36 @@ struct GeneralSettings: View {
     @ViewBuilder
     private var gestureControlsSection: some View {
         Section {
-            // Horizontal media gestures — not yet implemented
-            NXStyledToggleBinding(
+            NXStyledToggle(
                 title: "Change media with horizontal gestures",
-                isOn: .constant(false),
-                isDisabled: true
+                key: .enableSwipeToSkip
             )
+
+            if enableSwipeToSkip {
+                VStack(alignment: .leading, spacing: 10) {
+                    Text("Horizontal swipe sensitivity")
+                        .font(.body)
+
+                    NXVisualPreviewPicker(
+                        items: [
+                            NXPreviewItem(label: "Low", value: SwipeSensitivity.low, icon: "tortoise"),
+                            NXPreviewItem(label: "Medium", value: SwipeSensitivity.medium, icon: "figure.walk"),
+                            NXPreviewItem(label: "High", value: SwipeSensitivity.high, icon: "hare"),
+                        ],
+                        selection: $swipeSensitivity,
+                        cardHeight: 60,
+                        iconSize: 22
+                    )
+                }
+
+                NXStyledToggle(title: "Swipe haptic feedback", key: .swipeHapticFeedback)
+                NXStyledToggle(title: "Swipe overshoot animation", key: .swipeOvershootAnimation)
+            }
 
             NXStyledToggle(title: "Close gesture", key: .closeGestureEnabled)
 
             VStack(alignment: .leading, spacing: 10) {
-                Text("Gesture sensitivity")
+                Text("Vertical gesture sensitivity")
                     .font(.body)
 
                 NXVisualPreviewPicker(

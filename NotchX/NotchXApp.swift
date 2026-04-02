@@ -82,6 +82,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             screenUnlockedObserver = nil
         }
         MusicManager.shared.destroy()
+        BluetoothDeviceManager.shared.destroy()
         cleanupDragDetectors()
         cleanupWindows()
         XPCHelperClient.shared.stopMonitoringAccessibilityAuthorization()
@@ -487,6 +488,13 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         }
 
         setupDragDetectors()
+
+        // Bluetooth monitoring starts AFTER window creation to avoid
+        // IOBluetooth TCC permission blocking the main thread before
+        // the notch window is visible.
+        DispatchQueue.main.async {
+            BluetoothDeviceManager.shared.startMonitoring()
+        }
 
         if coordinator.firstLaunch {
             DispatchQueue.main.async {

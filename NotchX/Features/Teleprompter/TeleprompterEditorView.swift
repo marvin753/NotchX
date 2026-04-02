@@ -47,7 +47,7 @@ struct TeleprompterEditorView: View {
             }
 
             Divider()
-                .padding(.top, 12)
+                .padding(.top, 8)
 
             HStack(spacing: 12) {
                 Picker("Mode", selection: $listeningMode) {
@@ -60,15 +60,6 @@ struct TeleprompterEditorView: View {
 
                 Spacer()
 
-                HStack(spacing: 4) {
-                    Circle()
-                        .fill(manager.isActive ? Color.green : Color.gray)
-                        .frame(width: 8, height: 8)
-                    Text(manager.isActive ? "Active" : "Idle")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                }
-
                 if manager.isActive {
                     Button(action: { manager.stopTeleprompter() }) {
                         HStack(spacing: 4) {
@@ -79,18 +70,20 @@ struct TeleprompterEditorView: View {
                     .buttonStyle(.bordered)
                 } else {
                     Button(action: { manager.startTeleprompter() }) {
-                        HStack(spacing: 4) {
-                            Image(systemName: "play.fill")
-                            Text("Start")
-                        }
+                        Image(systemName: "play.fill")
+                            .font(.system(size: 18, weight: .semibold))
+                            .foregroundStyle(.white)
+                            .frame(width: 44, height: 44)
+                            .background(Color(nsColor: .systemBlue))
+                            .clipShape(Circle())
                     }
-                    .buttonStyle(.borderedProminent)
-                    .tint(.accentColor)
+                    .buttonStyle(.plain)
                     .disabled(manager.scriptText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
                 }
             }
             .padding(.horizontal, 16)
-            .padding(.vertical, 12)
+            .padding(.top, 8)
+            .padding(.bottom, 6)
         }
     }
 }

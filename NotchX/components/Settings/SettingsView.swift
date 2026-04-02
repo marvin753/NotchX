@@ -30,6 +30,9 @@ struct SettingsView: View {
                     NavigationLink(value: "Battery") {
                         SettingsSidebarLabel(title: "Battery", icon: "bolt.fill", color: .orange)
                     }
+                    NavigationLink(value: "Connectivity") {
+                        SettingsSidebarLabel(title: "Connectivity", icon: "antenna.radiowaves.left.and.right", color: .blue)
+                    }
                     NavigationLink(value: "Sound") {
                         SettingsSidebarLabel(title: "Sound", icon: "speaker.wave.3", color: .blue)
                     }
@@ -88,6 +91,8 @@ struct SettingsView: View {
                     GeneralSettings()
                 case "Battery":
                     Charge()
+                case "Connectivity":
+                    ConnectivitySettings()
                 case "Sound":
                     HUDSettingsPage(pageTitle: "Sound", pageDescription: "Configure how volume changes appear in the notch.")
                 case "Display":

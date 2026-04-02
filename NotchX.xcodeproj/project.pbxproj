@@ -148,6 +148,11 @@
 		AA11BB222ECC001100AA0002 /* SettingsSidebarLabel.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA11BB222ECC001100AA0001 /* SettingsSidebarLabel.swift */; };
 		AA11BB222ECC001100AA0004 /* ComingSoonPlaceholder.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA11BB222ECC001100AA0003 /* ComingSoonPlaceholder.swift */; };
 		AA11BB222ECC001100AA0006 /* HUDSettingsPage.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA11BB222ECC001100AA0005 /* HUDSettingsPage.swift */; };
+		CC00BB112F000001AABB0002 /* BluetoothDeviceManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC00BB112F000001AABB0001 /* BluetoothDeviceManager.swift */; };
+		CC00BB112F000001AABB0004 /* BluetoothDeviceType.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC00BB112F000001AABB0003 /* BluetoothDeviceType.swift */; };
+		CC00BB112F000001AABB0006 /* BluetoothHeaderWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC00BB112F000001AABB0005 /* BluetoothHeaderWidget.swift */; };
+		CC00BB112F000001AABB0008 /* BluetoothNotificationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC00BB112F000001AABB0007 /* BluetoothNotificationView.swift */; };
+		CC00BB112F000001AABB000A /* ConnectivitySettingsPage.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC00BB112F000001AABB0009 /* ConnectivitySettingsPage.swift */; };
 		FF1A2B3C4D5E6F7A8B9C0D02 /* TeleprompterEnums.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF1A2B3C4D5E6F7A8B9C0D01 /* TeleprompterEnums.swift */; };
 		FF1A2B3C4D5E6F7A8B9C0D04 /* TeleprompterSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF1A2B3C4D5E6F7A8B9C0D03 /* TeleprompterSettings.swift */; };
 		FF1A2B3C4D5E6F7A8B9C0D06 /* TeleprompterService.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF1A2B3C4D5E6F7A8B9C0D05 /* TeleprompterService.swift */; };
@@ -349,6 +354,11 @@
 		B1F747F82EC7E94000F841DB /* LottieView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LottieView.swift; sourceTree = "<group>"; };
 		B1FEB4982C7686630066EBBC /* PanGesture.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PanGesture.swift; sourceTree = "<group>"; };
 		F38DE6472D8243E2008B5C6D /* BatteryActivityManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BatteryActivityManager.swift; sourceTree = "<group>"; };
+		CC00BB112F000001AABB0001 /* BluetoothDeviceManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BluetoothDeviceManager.swift; sourceTree = "<group>"; };
+		CC00BB112F000001AABB0003 /* BluetoothDeviceType.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BluetoothDeviceType.swift; sourceTree = "<group>"; };
+		CC00BB112F000001AABB0005 /* BluetoothHeaderWidget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BluetoothHeaderWidget.swift; sourceTree = "<group>"; };
+		CC00BB112F000001AABB0007 /* BluetoothNotificationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BluetoothNotificationView.swift; sourceTree = "<group>"; };
+		CC00BB112F000001AABB0009 /* ConnectivitySettingsPage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConnectivitySettingsPage.swift; sourceTree = "<group>"; };
 		FF1A2B3C4D5E6F7A8B9C0D01 /* TeleprompterEnums.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TeleprompterEnums.swift; sourceTree = "<group>"; };
 		FF1A2B3C4D5E6F7A8B9C0D03 /* TeleprompterSettings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TeleprompterSettings.swift; sourceTree = "<group>"; };
 		FF1A2B3C4D5E6F7A8B9C0D05 /* TeleprompterService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TeleprompterService.swift; sourceTree = "<group>"; };
@@ -894,9 +904,22 @@
 			path = Teleprompter;
 			sourceTree = "<group>";
 		};
+		CC00BB112F000001AABB0010 /* Connectivity */ = {
+			isa = PBXGroup;
+			children = (
+				CC00BB112F000001AABB0001 /* BluetoothDeviceManager.swift */,
+				CC00BB112F000001AABB0003 /* BluetoothDeviceType.swift */,
+				CC00BB112F000001AABB0005 /* BluetoothHeaderWidget.swift */,
+				CC00BB112F000001AABB0007 /* BluetoothNotificationView.swift */,
+				CC00BB112F000001AABB0009 /* ConnectivitySettingsPage.swift */,
+			);
+			path = Connectivity;
+			sourceTree = "<group>";
+		};
 		FF1A2B3C4D5E6F7A8B9C0D13 /* Features */ = {
 			isa = PBXGroup;
 			children = (
+				CC00BB112F000001AABB0010 /* Connectivity */,
 				FF1A2B3C4D5E6F7A8B9C0D12 /* Teleprompter */,
 			);
 			path = Features;
@@ -1171,6 +1194,11 @@
 				1100290C2E847E2800035A57 /* NSItemProvider+LoadHelpers.swift in Sources */,
 				11CFC6632E09918400748C80 /* MusicControllerSelectionView.swift in Sources */,
 				B1F0A0022E60000100000001 /* BrightnessManager.swift in Sources */,
+				CC00BB112F000001AABB0002 /* BluetoothDeviceManager.swift in Sources */,
+				CC00BB112F000001AABB0004 /* BluetoothDeviceType.swift in Sources */,
+				CC00BB112F000001AABB0006 /* BluetoothHeaderWidget.swift in Sources */,
+				CC00BB112F000001AABB0008 /* BluetoothNotificationView.swift in Sources */,
+				CC00BB112F000001AABB000A /* ConnectivitySettingsPage.swift in Sources */,
 				FF1A2B3C4D5E6F7A8B9C0D02 /* TeleprompterEnums.swift in Sources */,
 				FF1A2B3C4D5E6F7A8B9C0D04 /* TeleprompterSettings.swift in Sources */,
 				FF1A2B3C4D5E6F7A8B9C0D06 /* TeleprompterService.swift in Sources */,

@@ -75,6 +75,23 @@ enum SliderColorEnum: String, CaseIterable, Defaults.Serializable {
     case accent = "Accent color"
 }
 
+enum SwipeSensitivity: String, CaseIterable, Defaults.Serializable {
+    case low
+    case medium
+    case high
+
+    var skipThreshold: CGFloat {
+        switch self {
+        case .low:
+            return 55
+        case .medium:
+            return 40
+        case .high:
+            return 25
+        }
+    }
+}
+
 enum ProgressBarStyle: String, CaseIterable, Defaults.Serializable {
     case white   // Solid white fill
     case accent  // Solid accent color fill

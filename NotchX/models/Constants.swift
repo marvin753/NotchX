@@ -118,6 +118,10 @@ extension Defaults.Keys {
     // MARK: Gestures
     static let closeGestureEnabled = Key<Bool>("closeGestureEnabled", default: true)
     static let gestureSensitivity = Key<CGFloat>("gestureSensitivity", default: 200.0)
+    static let enableSwipeToSkip = Key<Bool>("enableSwipeToSkip", default: true)
+    static let swipeSensitivity = Key<SwipeSensitivity>("swipeSensitivity", default: .medium)
+    static let swipeHapticFeedback = Key<Bool>("swipeHapticFeedback", default: true)
+    static let swipeOvershootAnimation = Key<Bool>("swipeOvershootAnimation", default: true)
     
     // MARK: Media playback
     static let coloredSpectrogram = Key<Bool>("coloredSpectrogram", default: true)
@@ -140,7 +144,11 @@ extension Defaults.Keys {
     static let showBatteryIndicator = Key<Bool>("showBatteryIndicator", default: true)
     static let showBatteryPercentage = Key<Bool>("showBatteryPercentage", default: true)
     static let showPowerStatusIcons = Key<Bool>("showPowerStatusIcons", default: true)
-    
+
+    // MARK: Connectivity
+    static let showBluetoothIndicator = Key<Bool>("showBluetoothIndicator", default: true)
+    static let showBluetoothNotifications = Key<Bool>("showBluetoothNotifications", default: true)
+
     // MARK: Downloads
     static let enableDownloadListener = Key<Bool>("enableDownloadListener", default: true)
     static let enableSafariDownloads = Key<Bool>("enableSafariDownloads", default: true)
