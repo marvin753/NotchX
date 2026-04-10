@@ -44,7 +44,7 @@ Once downloaded, open the `.dmg` and move **NotchX** to your `/Applications` fol
 After moving NotchX to your Applications folder, run:
 
 ```bash
-xattr -dr com.apple.quarantine /Applications/NotchX.app
+xattr -cr /Applications/NotchX.app
 ```
 
 Then open the app normally.
@@ -56,11 +56,14 @@ Then open the app normally.
 > [!NOTE]
 > This method doesn't work for all users. If it fails, use the Terminal method above.
 
-1. Try to open the app — you'll see a security warning.
-2. Click **OK** to dismiss it.
-3. Open **System Settings** > **Privacy & Security**.
-4. Scroll down and click **Open Anyway** next to the NotchX warning.
-5. Confirm if prompted.
+1. **Control-click** (right-click) on NotchX in your Applications folder and select **Open**.
+2. Click **Open** in the security dialog to confirm.
+
+If the app was already blocked by a previous double-click:
+
+1. Open **System Settings** → **Privacy & Security**.
+2. Scroll down and click **Open Anyway** next to the NotchX warning.
+3. Enter your password if prompted.
 
 ---
 
