@@ -88,6 +88,8 @@ brew install --cask MarvinBarsal/notchx/notchx --no-quarantine
 - **macOS 14 or later**
 - **Xcode 16 or later**
 
+---
+
 ### Steps
 
 1. **Clone the repository:**
